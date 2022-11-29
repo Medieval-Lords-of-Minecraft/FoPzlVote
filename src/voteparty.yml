@@ -1,0 +1,28 @@
+general:
+  # number of points to start a vote party
+  voteparty: 500
+  
+  # seconds between announcement and start
+  countdown: 30
+  
+  # ordered commands to run upon starting
+  voteparty-commands:
+  - "mythicmobs mobs spawn VotePartyMob 1 Argyll,955,65,-278"
+  - "bcore bc &a========================================="
+  - "bcore bc &a&l!! A VOTE PARTY HAS BEGUN AT SPAWN !!"
+  - "bcore bc &a========================================="
+
+
+notifications:
+  # periodic command issued every [num] many points
+  interval:
+    num: 20
+    command: "bc &4[&c&lMLMC&4] &e%votesremaining% &7votes left until the vote party! &e/vp status"
+  # commands issued at exactly [num] many points
+  specific:
+    25: "msg neoblade298 funnier than 24"
+
+# timed commands issued throughout countdown
+countdown:
+  0: "bc &7A vote party has commenced! It will begin at spawn in &e30 &7seconds!"
+  20: "bc &e10 &7seconds until vote party begins at spawn!"

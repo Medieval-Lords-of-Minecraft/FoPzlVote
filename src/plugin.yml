@@ -1,0 +1,19 @@
+name: FoPzlVote
+main: me.fopzl.vote.Vote
+author: [FoPzl]
+depend: [Votifier, NeoCore]
+version: 1.0
+api-version: 1.19
+commands:
+   mlvote:
+      usage: "§cUsage: §7/<command> stats/cooldown/leaderboard"
+      permission: mlvote.general
+   voteparty:
+      aliases: [vp]
+      usage: "§cUsage: §7/<command> status"
+      permission: mlvote.general
+permissions:
+   mlvote.general:
+      description: "General permission"
+   mlvote.admin:
+      description: "For admin functions like freevote"

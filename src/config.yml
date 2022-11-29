@@ -1,0 +1,23 @@
+# Valid vote services
+websites:
+  MCSL:
+     serviceName: MCSL
+     cooldownType: fixed
+     cooldownTime: 0
+     timezone: UTC
+  BestMinecraftServers:
+     serviceName: BestMinecraftServers.org
+     cooldownType: fixed
+     cooldownTime: 0
+     timezone: America/New_York
+  Blablabla:
+     serviceName: idkidk
+     cooldownType: timed
+     cooldownTime: 24
+     timezone: UTC
+
+# number of votes before a streak rolls over to 0
+streak-vote-limit: 125
+
+# number of days without votes before a streak resets
+streak-reset-leniency: 2

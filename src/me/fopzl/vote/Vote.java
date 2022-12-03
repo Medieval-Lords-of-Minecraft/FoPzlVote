@@ -185,7 +185,7 @@ public class Vote extends JavaPlugin {
 		rewards.rewardVote(p, stats.voteStreak);
 	}
 	
-	public void countVote(Player p, String voteServiceName) {
+	public void countVote(OfflinePlayer p, String voteServiceName) {
 		VoteStats stats = info.getStats(p);
 		String nickname;
 		if(voteSites.containsKey(voteServiceName)) {

@@ -157,7 +157,7 @@ public class VoteIO implements IOComponent {
 		}.runTask(main);
 	}
 	
-	public VoteStats tryLoadStats(Player p) {
+	public VoteStats tryLoadStats(OfflinePlayer p) {
 		Statement stmt = NeoCore.getStatement();
 		UUID uuid = p.getUniqueId();
 		

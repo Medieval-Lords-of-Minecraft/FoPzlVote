@@ -19,7 +19,7 @@ public class VoteInfo {
 		queuedRewards = new HashMap<UUID, Map<String, Integer>>();
 	}
 	
-	public VoteStats getStats(Player p) {
+	public VoteStats getStats(OfflinePlayer p) {
 		UUID uuid = p.getUniqueId();
 		if(playerStats.containsKey(uuid)) {
 			return playerStats.get(uuid);

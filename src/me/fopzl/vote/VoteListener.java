@@ -28,10 +28,10 @@ public class VoteListener implements Listener {
 			OfflinePlayer p = Bukkit.getServer().getOfflinePlayer(vote.getUsername());
 			Util.broadcastFormatted("&4[&c&lMLMC&4] &e" + p.getName() + " &7just voted on &c" + site + "&7!");
 			
-			main.countVote((Player)p, site);
+			main.countVote(p, site);
 			
 			if(p.isOnline()) {
-				main.rewardVote((Player)p, site);
+				main.rewardVote(p.getPlayer(), site);
 			} else {
 				UUID uuid = p.getUniqueId();
 				Map<String, Integer> pq = null;

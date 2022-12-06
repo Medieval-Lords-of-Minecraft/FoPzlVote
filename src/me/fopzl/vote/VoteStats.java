@@ -28,7 +28,7 @@ public class VoteStats {
 		
 		totalVotes = 0;
 		voteStreak = 0;
-		lastVoted = LocalDateTime.MIN;
+		lastVoted = LocalDateTime.of(0, 1, 1, 0, 0);
 		monthlySiteCounts = new HashMap<VoteMonth, Map<String, Integer>>();
 	}
 	

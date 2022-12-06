@@ -28,6 +28,14 @@ public class MLVoteCommand implements CommandExecutor, TabCompleter {
 		
 		if(sender.hasPermission("mlvote.admin")) {
 			switch(args[0]) {
+				// mlvote reward [player] [rewardname]
+				case "reward":
+					if(args.length < 3) return false;
+
+					if(!main.giveReward(args[1], args[2])) {
+						Util.sendMessageFormatted(sender, "&4[&c&lMLMC&4] &7Unknown Reward: &e" + args[2]);
+					}
+					return true;
 				// mlvote vote [player] [website]
 				case "vote":
 					if(args.length < 3) return false;
@@ -94,6 +102,7 @@ public class MLVoteCommand implements CommandExecutor, TabCompleter {
 			options.add("cooldown");
 			options.add("leaderboard");
 			if(sender.hasPermission("mlvote.admin")) {
+				options.add("reward");
 				options.add("vote");
 				options.add("setvotes");
 				options.add("reload");

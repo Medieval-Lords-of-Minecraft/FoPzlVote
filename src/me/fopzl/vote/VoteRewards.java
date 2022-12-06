@@ -15,11 +15,13 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 public class VoteRewards {
+	private Map<String, Reward> allRewards;
+
 	private Reward dailyReward;
 	private Map<Integer, Set<Reward>> streakRewards;
 	
 	public void loadConfig(YamlConfiguration cfg) {
-		Map<String, Reward> rewards = new HashMap<String, Reward>();
+		allRewards = new HashMap<String, Reward>();
 		
 		ConfigurationSection sec = cfg.getConfigurationSection("rewards");
 		for(String rName : sec.getKeys(false)) {
@@ -94,6 +96,13 @@ public class VoteRewards {
 				r.giveReward(p);
 			}
 		}
+	}
+
+	public boolean giveReward(Player p, String rewardName) {
+		if(allRewards.containsKey(rewardName)) {
+			allRewards.get(rewardName).giveReward(p);
+			return true;
+		} else return false;
 	}
 }
 

@@ -214,5 +214,9 @@ public class Vote extends JavaPlugin {
 		info.getStats(p).totalVotes = numVotes;
 		info.getStats(p).needToSave = true;
 	}
+
+	public boolean giveReward(String username, String rewardName) {
+		return rewards.giveReward(Bukkit.getServer().getPlayer(username), rewardName);
+	}
 }
 

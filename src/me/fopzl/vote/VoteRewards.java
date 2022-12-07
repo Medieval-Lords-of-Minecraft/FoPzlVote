@@ -25,50 +25,50 @@ public class VoteRewards {
 		
 		ConfigurationSection sec = cfg.getConfigurationSection("rewards");
 		for(String rName : sec.getKeys(false)) {
-			rewards.put(rName, new RawReward(sec.getString(rName)));
+			allRewards.put(rName, new RawReward(sec.getString(rName)));
 		}
 		
 		ConfigurationSection groupSec = cfg.getConfigurationSection("groups");
 		for(String gName : groupSec.getKeys(false)) {
-			rewards.put(gName, new RewardGroup());
+			allRewards.put(gName, new RewardGroup());
 		}
 		
 		ConfigurationSection poolSec = cfg.getConfigurationSection("pools");
 		for(String pName : poolSec.getKeys(false)) {
-			rewards.put(pName, new RewardPool());
+			allRewards.put(pName, new RewardPool());
 		}
 		
 		ConfigurationSection restrictSec = cfg.getConfigurationSection("permissioned-groups");
 		for(String rName : restrictSec.getKeys(false)) {
-			rewards.put(rName, new RestrictedReward());
+			allRewards.put(rName, new RestrictedReward());
 		}
 		
 		for(String groupName : groupSec.getKeys(false)) {
-			RewardGroup g = (RewardGroup)rewards.get(groupName);
+			RewardGroup g = (RewardGroup)allRewards.get(groupName);
 			
 			for(String groupItem : groupSec.getStringList(groupName)) {
-				g.addReward(rewards.get(groupItem));
+				g.addReward(allRewards.get(groupItem));
 			}
 		}
 		
 		for(String poolName : poolSec.getKeys(false)) {
-			RewardPool p = (RewardPool)rewards.get(poolName);
+			RewardPool p = (RewardPool)allRewards.get(poolName);
 			
 			ConfigurationSection subSec = poolSec.getConfigurationSection(poolName);
 			for(String poolItem : subSec.getKeys(false)) {
-				p.addReward(rewards.get(poolItem), subSec.getInt(poolItem));
+				p.addReward(allRewards.get(poolItem), subSec.getInt(poolItem));
 			}
 		}
 		
 		for(String permGroupName : restrictSec.getKeys(false)) {
-			RestrictedReward r = (RestrictedReward)rewards.get(permGroupName);
+			RestrictedReward r = (RestrictedReward)allRewards.get(permGroupName);
 			
 			for(Object o : restrictSec.getList(permGroupName)) {
 				@SuppressWarnings("unchecked")
 				Entry<String, String> permGroupItem = ((Map<String, String>)o).entrySet().iterator().next();
 				String permName = permGroupItem.getKey();
 				String rewardName = permGroupItem.getValue();
-				r.addReward(rewards.get(rewardName), permName);
+				r.addReward(allRewards.get(rewardName), permName);
 			}
 		}
 		
@@ -80,11 +80,11 @@ public class VoteRewards {
 			streakRewards.putIfAbsent(streakNum, itemSet);
 			
 			for(String streakItem : streakSec.getStringList(s)) {
-				itemSet.add(rewards.get(streakItem));
+				itemSet.add(allRewards.get(streakItem));
 			}
 		}
 		
-		dailyReward = rewards.get(cfg.getString("daily"));
+		dailyReward = allRewards.get(cfg.getString("daily"));
 	}
 	
 	// streak is in votes, not days

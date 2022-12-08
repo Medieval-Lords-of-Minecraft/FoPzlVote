@@ -116,29 +116,29 @@ public class VoteIO implements IOComponent {
 	public void loadPlayer(Player p, Statement stmt) {
 		UUID uuid = p.getUniqueId();
 		
-		if(loadedOfflinePlayers.contains(uuid)) return;
-		
-		try {
-			ResultSet rs = stmt.executeQuery("select * from fopzlvote_playerStats where uuid = '" + uuid + "';");
-			if(!rs.next()) return;
-			
-			VoteStats vs = new VoteStats(rs.getInt("totalVotes"), rs.getInt("voteStreak"), rs.getObject("whenLastVoted", LocalDateTime.class));
-			
-			rs = stmt.executeQuery("select * from fopzlvote_playerHist where uuid = '" + uuid + "';");
-			while(rs.next()) {
-				VoteMonth voteMonth = new VoteMonth(rs.getInt("year"), rs.getInt("month"));
-				String voteSite = rs.getString("voteSite");
-				int numVotes = rs.getInt("numVotes");
+		if(!loadedOfflinePlayers.contains(uuid)) {
+			try {
+				ResultSet rs = stmt.executeQuery("select * from fopzlvote_playerStats where uuid = '" + uuid + "';");
+				if(!rs.next()) return;
 				
-				Map<String, Integer> monthCounts = vs.monthlySiteCounts.getOrDefault(voteMonth, new HashMap<String, Integer>());
-				monthCounts.put(voteSite, numVotes);
-				vs.monthlySiteCounts.putIfAbsent(voteMonth, monthCounts);
+				VoteStats vs = new VoteStats(rs.getInt("totalVotes"), rs.getInt("voteStreak"), rs.getObject("whenLastVoted", LocalDateTime.class));
+				
+				rs = stmt.executeQuery("select * from fopzlvote_playerHist where uuid = '" + uuid + "';");
+				while(rs.next()) {
+					VoteMonth voteMonth = new VoteMonth(rs.getInt("year"), rs.getInt("month"));
+					String voteSite = rs.getString("voteSite");
+					int numVotes = rs.getInt("numVotes");
+					
+					Map<String, Integer> monthCounts = vs.monthlySiteCounts.getOrDefault(voteMonth, new HashMap<String, Integer>());
+					monthCounts.put(voteSite, numVotes);
+					vs.monthlySiteCounts.putIfAbsent(voteMonth, monthCounts);
+				}
+				
+				main.getVoteInfo().playerStats.put(uuid, vs);
+			} catch (SQLException e) {
+				Bukkit.getLogger().warning("Failed to load vote data for player " + p.getName());
+				e.printStackTrace();
 			}
-			
-			main.getVoteInfo().playerStats.put(uuid, vs);
-		} catch (SQLException e) {
-			Bukkit.getLogger().warning("Failed to load vote data for player " + p.getName());
-			e.printStackTrace();
 		}
 		
 		new BukkitRunnable() {
@@ -155,6 +155,8 @@ public class VoteIO implements IOComponent {
 				}
 			}
 		}.runTask(main);
+
+		loadedOfflinePlayers.remove(uuid);
 	}
 	
 	public VoteStats tryLoadStats(OfflinePlayer p) {

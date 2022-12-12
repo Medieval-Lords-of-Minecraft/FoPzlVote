@@ -93,6 +93,10 @@ public class VoteRewards {
 		
 		if(streakRewards.containsKey(streak)) {
 			for(Reward r : streakRewards.get(streak)) {
+				if (r == null) {
+					Bukkit.getLogger().warning("[FoPzlVote] Failed to give a reward for streak " + streak);
+					continue;
+				}
 				r.giveReward(p);
 			}
 		}

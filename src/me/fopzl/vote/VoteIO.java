@@ -26,7 +26,7 @@ import me.neoblade298.neocore.scheduler.SchedulerAPI;
 public class VoteIO implements IOComponent {
 	Vote main;
 	
-	Set<UUID> loadedOfflinePlayers;
+	static Set<UUID> loadedOfflinePlayers;
 	
 	public VoteIO(Vote main) {
 		this.main = main;
@@ -147,11 +147,12 @@ public class VoteIO implements IOComponent {
 				Map<UUID, Map<String, Integer>> qr = main.getVoteInfo().queuedRewards;
 				if(qr.containsKey(uuid)) {
 					Map<String, Integer> sites = qr.remove(uuid);
+					int sum = 0;
 					for(Entry<String, Integer> entry : sites.entrySet()) {
-						for(int i = 0; i < entry.getValue(); i++) {
-							main.rewardVote(p, entry.getKey());
-						}
+						// Calculate how many offline votes there was to properly reward the streaks
+						sum += entry.getValue();
 					}
+					main.rewardVoteQueued(p, sum);
 				}
 			}
 		}.runTask(main);
@@ -381,5 +382,9 @@ public class VoteIO implements IOComponent {
 		}
 		
 		return LocalDateTime.of(0, 1, 1, 0, 0);
+	}
+	
+	public static void addOfflinePlayer(UUID uuid) {
+		loadedOfflinePlayers.add(uuid);
 	}
 }

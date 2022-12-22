@@ -8,7 +8,6 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
@@ -31,9 +30,10 @@ public class VoteListener implements Listener {
 			main.countVote(p, site);
 			
 			if(p.isOnline()) {
-				main.rewardVote(p.getPlayer(), site);
+				main.rewardVote(p.getPlayer());
 			} else {
 				UUID uuid = p.getUniqueId();
+				VoteIO.addOfflinePlayer(uuid);
 				Map<String, Integer> pq = null;
 				Map<UUID, Map<String, Integer>> qr = main.getVoteInfo().queuedRewards;
 				

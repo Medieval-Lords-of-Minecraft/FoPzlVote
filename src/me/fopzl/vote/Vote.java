@@ -36,6 +36,7 @@ public class Vote extends JavaPlugin {
 	private VoteIO io;
 	
 	private static Vote instance;
+	public static boolean debug = false;
 	
 	public void onEnable() {
 		super.onEnable();
@@ -180,9 +181,16 @@ public class Vote extends JavaPlugin {
 		return voteSites.containsKey(voteServiceName);
 	}
 	
-	public void rewardVote(Player p, String voteServiceName) {
+	public void rewardVote(Player p) {
 		VoteStats stats = info.getStats(p);
 		rewards.rewardVote(p, stats.voteStreak);
+	}
+	
+	public void rewardVoteQueued(Player p, int queuedVotes) {
+		VoteStats stats = info.getStats(p);
+		for (int i = stats.voteStreak - queuedVotes + 1; i <= stats.voteStreak; i++) {
+			rewards.rewardVote(p, i);
+		}
 	}
 	
 	public void countVote(OfflinePlayer p, String voteServiceName) {

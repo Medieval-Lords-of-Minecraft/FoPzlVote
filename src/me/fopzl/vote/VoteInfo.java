@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 
 public class VoteInfo {
 	public Map<UUID, VoteStats> playerStats;

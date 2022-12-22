@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.bukkit.Bukkit;
+
 public class VoteStats {
 	private static long streakLimit; // votes
 	private static long streakResetTime; // days
@@ -48,6 +50,9 @@ public class VoteStats {
 			voteStreak = 0;
 		}		
 		voteStreak++;
+		if (Vote.debug) {
+			Bukkit.getLogger().info("[FoPzlVote] Set player total vote to " + totalVotes + ", vote streak to " + voteStreak);
+		}
 		
 		lastVoted = LocalDateTime.now();
 		

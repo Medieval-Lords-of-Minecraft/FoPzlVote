@@ -100,6 +100,7 @@ public class VoteRewards {
 				r.giveReward(p);
 			}
 		}
+		Bukkit.getLogger().info("[FoPzlVote] Gave player " + p.getName() + " reward for streak " + streak);
 	}
 
 	public boolean giveReward(Player p, String rewardName) {

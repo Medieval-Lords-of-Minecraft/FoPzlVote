@@ -30,7 +30,7 @@ public class VoteIO implements IOComponent {
 	
 	public VoteIO(Vote main) {
 		this.main = main;
-		NeoCore.registerIOComponent(main, this);
+		NeoCore.registerIOComponent(main, this, "FoPzlVoteIO");
 		
 		loadedOfflinePlayers = new HashSet<UUID>();
 		
@@ -48,11 +48,6 @@ public class VoteIO implements IOComponent {
 				}.runTaskAsynchronously(main);
 			}
 		});
-	}
-	
-	@Override
-	public String getKey() {
-		return "FoPzlVoteIO";
 	}
 	
 	@Override
@@ -161,7 +156,7 @@ public class VoteIO implements IOComponent {
 	}
 	
 	public VoteStats tryLoadStats(OfflinePlayer p) {
-		Statement stmt = NeoCore.getStatement();
+		Statement stmt = NeoCore.getStatement("FoPzlVoteIO");
 		UUID uuid = p.getUniqueId();
 		
 		try {
@@ -193,7 +188,7 @@ public class VoteIO implements IOComponent {
 	}
 	
 	public void cleanupOfflineVoters() {
-		Statement insert = NeoCore.getStatement();
+		Statement insert = NeoCore.getStatement("FoPzlVoteIO");
 		
 		for(UUID uuid : loadedOfflinePlayers) {
 			VoteStats vs = main.getVoteInfo().playerStats.get(uuid);
@@ -238,7 +233,7 @@ public class VoteIO implements IOComponent {
 	}
 	
 	public void saveVoteParty() {
-		Statement stmt = NeoCore.getStatement();
+		Statement stmt = NeoCore.getStatement("FoPzlVoteIO");
 		
 		try {
 			stmt.execute("delete from fopzlvote_voteParty;");
@@ -251,7 +246,7 @@ public class VoteIO implements IOComponent {
 	}
 	
 	public void loadVoteParty() {
-		Statement stmt = NeoCore.getStatement();
+		Statement stmt = NeoCore.getStatement("FoPzlVoteIO");
 		
 		ResultSet rs;
 		try {
@@ -269,7 +264,7 @@ public class VoteIO implements IOComponent {
 	}
 	
 	public void saveQueue() {
-		Statement stmt = NeoCore.getStatement();
+		Statement stmt = NeoCore.getStatement("FoPzlVoteIO");
 		
 		try {
 			stmt.execute("delete from fopzlvote_voteQueue");
@@ -301,7 +296,7 @@ public class VoteIO implements IOComponent {
 	
 	public void loadQueue() {
 		Map<UUID, Map<String, Integer>> newQueue = new HashMap<UUID, Map<String, Integer>>();
-		Statement stmt = NeoCore.getStatement();
+		Statement stmt = NeoCore.getStatement("FoPzlVoteIO");
 		
 		try {
 			ResultSet rs = stmt.executeQuery("select * from fopzlvote_voteQueue");
@@ -329,7 +324,7 @@ public class VoteIO implements IOComponent {
 		List<Object[]> topVoters = new ArrayList<Object[]>();
 		
 		try {
-			Statement stmt = NeoCore.getStatement();
+			Statement stmt = NeoCore.getStatement("FoPzlVoteIO");
 			
 			ResultSet rs = stmt.executeQuery("select uuid, sum(numVotes) sumVotes from fopzlvote_playerHist where year = " + year + " and month = " + month + " group by uuid order by sumVotes desc limit " + numVoters + ";");
 			while(rs.next()) {
@@ -350,7 +345,7 @@ public class VoteIO implements IOComponent {
 	
 	public void setCooldown(OfflinePlayer player, String voteSite) {
 		try {
-			Statement stmt = NeoCore.getStatement();
+			Statement stmt = NeoCore.getStatement("FoPzlVoteIO");
 			
 			UUID uuid = player.getUniqueId();
 			String whenLastVoted = LocalDateTime.now().toString();
@@ -366,7 +361,7 @@ public class VoteIO implements IOComponent {
 	
 	public LocalDateTime getCooldown(OfflinePlayer player, String voteSite) {
 		try {
-			Statement stmt = NeoCore.getStatement();
+			Statement stmt = NeoCore.getStatement("FoPzlVoteIO");
 			
 			UUID uuid = player.getUniqueId();
 			

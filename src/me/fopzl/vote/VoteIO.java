@@ -71,7 +71,7 @@ public class VoteIO implements IOComponent {
 		UUID uuid = p.getUniqueId();
 		if(!main.getVoteInfo().playerStats.containsKey(uuid)) return;
 		
-		VoteStats vs = main.getVoteInfo().playerStats.get(uuid);
+		VoteStatsGlobal vs = main.getVoteInfo().playerStats.get(uuid);
 		if(!vs.needToSave) return;
 		vs.needToSave = false;
 		
@@ -116,7 +116,7 @@ public class VoteIO implements IOComponent {
 				ResultSet rs = stmt.executeQuery("select * from fopzlvote_playerStats where uuid = '" + uuid + "';");
 				if(!rs.next()) return;
 				
-				VoteStats vs = new VoteStats(rs.getInt("totalVotes"), rs.getInt("voteStreak"), rs.getObject("whenLastVoted", LocalDateTime.class));
+				VoteStatsGlobal vs = new VoteStatsGlobal(rs.getInt("totalVotes"), rs.getInt("voteStreak"), rs.getObject("whenLastVoted", LocalDateTime.class));
 				
 				rs = stmt.executeQuery("select * from fopzlvote_playerHist where uuid = '" + uuid + "';");
 				while(rs.next()) {
@@ -155,7 +155,7 @@ public class VoteIO implements IOComponent {
 		loadedOfflinePlayers.remove(uuid);
 	}
 	
-	public VoteStats tryLoadStats(OfflinePlayer p) {
+	public VoteStatsGlobal tryLoadStats(OfflinePlayer p) {
 		Statement stmt = NeoCore.getStatement("FoPzlVoteIO");
 		UUID uuid = p.getUniqueId();
 		
@@ -163,7 +163,7 @@ public class VoteIO implements IOComponent {
 			ResultSet rs = stmt.executeQuery("select * from fopzlvote_playerStats where uuid = '" + uuid + "';");
 			if(!rs.next()) return null;
 			
-			VoteStats vs = new VoteStats(rs.getInt("totalVotes"), rs.getInt("voteStreak"), rs.getObject("whenLastVoted", LocalDateTime.class));
+			VoteStatsGlobal vs = new VoteStatsGlobal(rs.getInt("totalVotes"), rs.getInt("voteStreak"), rs.getObject("whenLastVoted", LocalDateTime.class));
 			
 			rs = stmt.executeQuery("select * from fopzlvote_playerHist where uuid = '" + uuid + "';");
 			while(rs.next()) {
@@ -191,7 +191,7 @@ public class VoteIO implements IOComponent {
 		Statement insert = NeoCore.getStatement("FoPzlVoteIO");
 		
 		for(UUID uuid : loadedOfflinePlayers) {
-			VoteStats vs = main.getVoteInfo().playerStats.get(uuid);
+			VoteStatsGlobal vs = main.getVoteInfo().playerStats.get(uuid);
 			if(!vs.needToSave) return;
 			vs.needToSave = false;
 			

@@ -6,7 +6,7 @@ import java.util.Map;
 
 import org.bukkit.Bukkit;
 
-public class VoteStats {
+public class VoteStatsGlobal {
 	private static long streakLimit; // votes
 	private static long streakResetTime; // days
 	
@@ -25,7 +25,7 @@ public class VoteStats {
 		streakResetTime = numDays;
 	}
 	
-	public VoteStats() {
+	public VoteStatsGlobal() {
 		needToSave = true;
 		
 		totalVotes = 0;
@@ -34,7 +34,7 @@ public class VoteStats {
 		monthlySiteCounts = new HashMap<VoteMonth, Map<String, Integer>>();
 	}
 	
-	public VoteStats(int totalVotes, int voteStreak, LocalDateTime lastVoted) {
+	public VoteStatsGlobal(int totalVotes, int voteStreak, LocalDateTime lastVoted) {
 		needToSave = false;
 		
 		this.totalVotes = totalVotes;

@@ -1,6 +1,11 @@
-package me.fopzl.vote;
+package me.fopzl.vote.listeners;
 
 import com.vexsoftware.votifier.model.VotifierEvent;
+
+import me.fopzl.vote.Util;
+import me.fopzl.vote.Vote;
+import me.fopzl.vote.VoteIO;
+import me.neoblade298.neocore.bungee.BungeeAPI;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,10 +30,12 @@ public class VoteListener implements Listener {
 		String site = vote.getServiceName();
 		if(main.isValidSite(site) || site.equalsIgnoreCase("freevote")) {
 			OfflinePlayer p = Bukkit.getServer().getOfflinePlayer(vote.getUsername());
-			Util.broadcastFormatted("&4[&c&lMLMC&4] &e" + p.getName() + " &7just voted on &c" + site + "&7!");
+			BungeeAPI.broadcast("&4[&c&lMLMC&4] &e" + p.getName() + " &7just voted on &c" + site + "&7!");
 			
 			main.countVote(p, site);
+			BungeeAPI.sendPluginMessage("fopzlvote-vote", new String[] { p.getUniqueId().toString() });
 			
+			/*
 			if(p.isOnline()) {
 				main.rewardVote(p.getPlayer());
 			} else {
@@ -48,6 +55,7 @@ public class VoteListener implements Listener {
 			
 			main.incVoteParty();
 			main.setCooldown(p, site);
+			*/
 		}
 	}
 }

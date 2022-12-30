@@ -1,7 +1,8 @@
 name: FoPzlVote
 main: me.fopzl.vote.Vote
 author: [FoPzl]
-depend: [NeoCore, Votifier]
+depend: [NeoCore]
+softdepend: [Votifier]
 version: 1.0
 api-version: 1.19
 commands:

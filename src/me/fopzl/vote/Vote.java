@@ -23,6 +23,8 @@ import com.vexsoftware.votifier.model.VotifierEvent;
 
 import me.fopzl.vote.commands.MLVoteCommand;
 import me.fopzl.vote.commands.VotePartyCommand;
+import me.fopzl.vote.listeners.ProxyListener;
+import me.fopzl.vote.listeners.VoteListener;
 
 public class Vote extends JavaPlugin {
 	private VoteListener voteListener;
@@ -49,6 +51,7 @@ public class Vote extends JavaPlugin {
 
 		voteListener = new VoteListener(this);
 		getServer().getPluginManager().registerEvents(voteListener, this);
+		getServer().getPluginManager().registerEvents(new ProxyListener(this), this);
 
 		MLVoteCommand mlvoteCmd = new MLVoteCommand(this);
 		this.getCommand("mlvote").setExecutor(mlvoteCmd);
@@ -114,8 +117,8 @@ public class Vote extends JavaPlugin {
 			voteSites.put(vsi.serviceName, vsi);
 		}
 		
-		VoteStats.setStreakLimit(cfg.getInt("streak-vote-limit"));
-		VoteStats.setStreakResetTime(cfg.getInt("streak-reset-leniency"));
+		VoteStatsGlobal.setStreakLimit(cfg.getInt("streak-vote-limit"));
+		VoteStatsGlobal.setStreakResetTime(cfg.getInt("streak-reset-leniency"));
 	}
 	
 	public VoteInfo getVoteInfo() {
@@ -145,7 +148,7 @@ public class Vote extends JavaPlugin {
 	}
 	
 	public void showStats(CommandSender showTo, Player player) {
-		VoteStats stats = info.getStats(player);
+		VoteStatsGlobal stats = info.getGlobalStats(player);
 		
 		String msg = "&4[&c&lMLMC&4] &eVote Stats for &6" + player.getName() + "&e:"
 				+ "\n &eAll time votes: &7" + stats.getTotalVotes()
@@ -182,19 +185,19 @@ public class Vote extends JavaPlugin {
 	}
 	
 	public void rewardVote(Player p) {
-		VoteStats stats = info.getStats(p);
-		rewards.rewardVote(p, stats.voteStreak);
+		VoteStatsLocal stats = info.getLocalStats(p);
+		rewards.rewardVote(p, stats);
 	}
 	
 	public void rewardVoteQueued(Player p, int queuedVotes) {
-		VoteStats stats = info.getStats(p);
+		VoteStatsGlobal stats = info.getGlobalStats(p);
 		for (int i = stats.voteStreak - queuedVotes + 1; i <= stats.voteStreak; i++) {
 			rewards.rewardVote(p, i);
 		}
 	}
 	
 	public void countVote(OfflinePlayer p, String voteServiceName) {
-		VoteStats stats = info.getStats(p);
+		VoteStatsGlobal stats = info.getGlobalStats(p);
 		String nickname;
 		if(voteSites.containsKey(voteServiceName)) {
 			nickname = voteSites.get(voteServiceName).nickname;
@@ -219,8 +222,8 @@ public class Vote extends JavaPlugin {
 	}
 	
 	public void setTotalVotes(Player p, int numVotes) {
-		info.getStats(p).totalVotes = numVotes;
-		info.getStats(p).needToSave = true;
+		info.getGlobalStats(p).totalVotes = numVotes;
+		info.getGlobalStats(p).needToSave = true;
 	}
 
 	public boolean giveReward(String username, String rewardName) {

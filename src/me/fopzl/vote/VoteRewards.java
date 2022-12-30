@@ -88,8 +88,9 @@ public class VoteRewards {
 	}
 	
 	// streak is in votes, not days
-	public void rewardVote(Player p, int streak) {
+	public void rewardVote(Player p, VoteStatsLocal stats) {
 		dailyReward.giveReward(p);
+		int streak = stats.getStreak();
 		
 		if(streakRewards.containsKey(streak)) {
 			for(Reward r : streakRewards.get(streak)) {

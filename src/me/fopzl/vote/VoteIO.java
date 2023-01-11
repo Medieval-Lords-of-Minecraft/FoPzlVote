@@ -150,7 +150,7 @@ public class VoteIO implements IOComponent {
 					main.rewardVoteQueued(p, sum);
 				}
 			}
-		}.runTask(main);
+		}.runTaskLater(main, 40L);
 
 		loadedOfflinePlayers.remove(uuid);
 	}

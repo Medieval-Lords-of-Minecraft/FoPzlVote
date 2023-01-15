@@ -13,6 +13,7 @@ public class VoteStatsGlobal {
 	private static long streakResetTime; // days
 	
 	boolean needToSave;
+	private long 
 	
 	int totalVotes; // ever
 	int voteStreak; // current

@@ -26,21 +26,16 @@ import me.neoblade298.neocore.scheduler.ScheduleInterval;
 import me.neoblade298.neocore.scheduler.SchedulerAPI;
 
 public class VoteIO implements IOComponent {
-	static Set<UUID> loadedOfflinePlayers;
 	
 	public VoteIO() {
 		NeoCore.registerIOComponent(Vote.getInstance(), this, "FoPzlVoteIO");
 		
-		loadedOfflinePlayers = new HashSet<UUID>();
-		
-		loadQueue();
 		loadVoteParty();
 		
 		SchedulerAPI.scheduleRepeating("FoPzlVote-Autosave-Queue", ScheduleInterval.FIFTEEN_MINUTES, new Runnable() {
 			public void run() {
 				new BukkitRunnable() {
 					public void run() {
-						cleanupOfflineVoters();
 						saveQueue();
 						saveVoteParty();
 					}
@@ -51,7 +46,6 @@ public class VoteIO implements IOComponent {
 	
 	@Override
 	public void cleanup(Statement insert, Statement delete) {
-		cleanupOfflineVoters();
 		saveQueue();
 		saveVoteParty();
 	}
@@ -151,8 +145,6 @@ public class VoteIO implements IOComponent {
 				}
 			}
 		}.runTask(Vote.getInstance());
-
-		loadedOfflinePlayers.remove(uuid);
 	}
 	
 	public static VoteStatsGlobal tryLoadGlobalStats(OfflinePlayer p) {
@@ -211,51 +203,6 @@ public class VoteIO implements IOComponent {
 		}
 		
 		return null;
-	}
-	
-	public static void cleanupOfflineVoters() {
-		Statement insert = NeoCore.getStatement("FoPzlVoteIO");
-		
-		for(UUID uuid : loadedOfflinePlayers) {
-			VoteStatsGlobal vs = VoteInfo.globalStats.get(uuid);
-			if(!vs.needToSave) return;
-			vs.needToSave = false;
-			
-			try {
-				insert.addBatch("replace into fopzlvote_playerStats values ('" + uuid + "', " + vs.totalVotes + ", " + vs.voteStreak + ", '" + vs.lastVoted.toString() + "');");
-				
-				int year = LocalDateTime.now().getYear();
-				int month = LocalDateTime.now().getMonthValue();
-				VoteMonth now = new VoteMonth(year, month);
-				if(month == 1) {
-					year--;
-					month = 12;
-				}
-				VoteMonth prev = new VoteMonth(year, month);
-				
-				// only save this month and the last
-				Map<String, Integer> currCounts = vs.monthlySiteCounts.get(now);
-				if(currCounts != null) {
-					for(Entry<String, Integer> entry : currCounts.entrySet()) {
-						insert.addBatch("replace into fopzlvote_playerHist values ('" + uuid + "', " + year + ", " + month + ", '" + entry.getKey() + "', " + entry.getValue() + ");");
-					}
-				}
-				
-				Map<String, Integer> prevCounts = vs.monthlySiteCounts.get(prev);
-				if(prevCounts != null) {
-					for(Entry<String, Integer> entry : prevCounts.entrySet()) {
-						insert.addBatch("replace into fopzlvote_playerHist values ('" + uuid + "', " + year + ", " + month + ", '" + entry.getKey() + "', " + entry.getValue() + ");");
-					}
-				}
-				
-				insert.executeBatch();
-			} catch (SQLException e) {
-				Bukkit.getLogger().warning("Failed to cleanup offline vote data for uuid " + uuid);
-				e.printStackTrace();
-			}
-		}
-		
-		loadedOfflinePlayers.clear();
 	}
 	
 	public static void saveVoteParty() {
@@ -318,30 +265,6 @@ public class VoteIO implements IOComponent {
 			Bukkit.getLogger().warning("Failed to save queue data batch");
 			e.printStackTrace();
 		}
-	}
-	
-	public static void loadQueue() {
-		Map<UUID, Map<String, Integer>> newQueue = new HashMap<UUID, Map<String, Integer>>();
-		Statement stmt = NeoCore.getStatement("FoPzlVoteIO");
-		
-		try {
-			ResultSet rs = stmt.executeQuery("select * from fopzlvote_voteQueue");
-			while(rs.next()) {
-				UUID uuid = UUID.fromString(rs.getString("uuid"));
-				String voteSite = rs.getString("voteSite");
-				int numVotes = rs.getInt("numVotes");
-				
-				Map<String, Integer> pq = newQueue.getOrDefault(uuid, new HashMap<String, Integer>());
-				pq.put(voteSite, numVotes);
-				newQueue.putIfAbsent(uuid, pq);
-			}
-			stmt.close();
-		} catch (SQLException e) {
-			Bukkit.getLogger().warning("Failed to load queue data");
-			e.printStackTrace();
-		}
-		
-		VoteInfo.queuedRewards = newQueue;
 	}
 	
 	// month is 1-indexed

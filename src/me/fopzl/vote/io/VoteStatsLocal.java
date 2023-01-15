@@ -1,10 +1,6 @@
-package me.fopzl.vote;
+package me.fopzl.vote.io;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.bukkit.Bukkit;
 
 public class VoteStatsLocal {
 	boolean needToSave;

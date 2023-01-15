@@ -11,8 +11,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import me.fopzl.vote.Util;
 import me.fopzl.vote.Vote;
+import me.neoblade298.neocore.util.Util;
 
 public class MLVoteCommand implements CommandExecutor, TabCompleter {
 	private Vote main;
@@ -32,15 +32,15 @@ public class MLVoteCommand implements CommandExecutor, TabCompleter {
 				case "reward":
 					if(args.length < 3) return false;
 
-					if(!main.giveReward(args[1], args[2])) {
-						Util.sendMessageFormatted(sender, "&4[&c&lMLMC&4] &7Unknown Reward: &e" + args[2]);
+					if(!Vote.giveReward(args[1], args[2])) {
+						Util.msg(sender, "&7Unknown Reward: &e" + args[2]);
 					}
 					return true;
 				// mlvote vote [player] [website]
 				case "vote":
 					if(args.length < 3) return false;
 					
-					main.cmdVote(args[1], args[2]);
+					Vote.cmdVote(args[1], args[2]);
 					return true;
 				case "setvotes":
 					if(args.length < 3) return false;
@@ -48,18 +48,18 @@ public class MLVoteCommand implements CommandExecutor, TabCompleter {
 					Player onlinePlayer = Bukkit.getPlayer(args[1]);
 					int numVotes = Integer.parseInt(args[2]);
 					if(onlinePlayer == null) {
-						Util.sendMessageFormatted(sender, "&4[&c&lMLMC&4] &7Player &e" + args[1] + " &7offline.");
+						Util.msg(sender, "&7Player &e" + args[1] + " &7offline.");
 						return true;
 					}
-					main.setTotalVotes(onlinePlayer, numVotes);
+					Vote.setTotalVotes(onlinePlayer, numVotes);
 					return true;
 				case "reload":
 					main.loadAllConfigs();
-					Util.sendMessageFormatted(sender, "&4[&c&lMLMC&4] &7Reloaded config");
+					Util.msg(sender, "&7Reloaded config");
 					return true;
 				case "debug":
 					Vote.debug = !Vote.debug;
-					Util.sendMessageFormatted(sender, "&4[&c&lMLMC&4] &7Set debug to " + Vote.debug);
+					Util.msg(sender, "&7Set debug to " + Vote.debug);
 					return true;
 			}
 		}
@@ -70,25 +70,25 @@ public class MLVoteCommand implements CommandExecutor, TabCompleter {
 			if(args.length > 1) {
 				Player onlinePlayer = Bukkit.getPlayer(args[1]);
 				if(onlinePlayer == null) {
-					Util.sendMessageFormatted(sender, "&4[&c&lMLMC&4] &7Player &e" + args[1] + " &7offline.");
+					Util.msg(sender, "&7Player &e" + args[1] + " &7offline.");
 					return true;
 				}
-				main.showStats(sender, onlinePlayer);
+				Vote.showStats(sender, onlinePlayer);
 			} else {
-				main.showStats(sender, (Player)sender);
+				Vote.showStats(sender, (Player)sender);
 			}
 			return true;
 		case "cooldown":
 			if(!(sender instanceof Player)) return false;
 			if(args.length > 1) {
 				OfflinePlayer player = Bukkit.getOfflinePlayer(args[1]);
-				main.showCooldowns(sender, player);
+				Vote.showCooldowns(sender, player);
 			} else {
-				main.showCooldowns(sender, (Player)sender);
+				Vote.showCooldowns(sender, (Player)sender);
 			}
 			return true;
 		case "leaderboard":
-			main.showLeaderboard(sender);
+			Vote.showLeaderboard(sender);
 			return true;
 		}
 		

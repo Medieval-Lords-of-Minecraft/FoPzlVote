@@ -12,11 +12,6 @@ import org.bukkit.entity.Player;
 import me.fopzl.vote.VoteParty;
 
 public class VotePartyCommand implements CommandExecutor, TabCompleter {
-	private VoteParty voteParty;
-
-	public VotePartyCommand(VoteParty vp) {
-		voteParty = vp;
-	}
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String lbl, String[] args) {
@@ -26,17 +21,17 @@ public class VotePartyCommand implements CommandExecutor, TabCompleter {
 			switch(args[0]) {
 				case "add":
 					if(args.length < 2) return false;
-					voteParty.addPoints(Integer.parseInt(args[1]));
+					VoteParty.addPoints(Integer.parseInt(args[1]));
 					return true;
 				case "set":
 					if(args.length < 2) return false;
-					voteParty.setPoints(Integer.parseInt(args[1]));
+					VoteParty.setPoints(Integer.parseInt(args[1]));
 					return true;
 			}
 		}
 		
 		if (args[0].equalsIgnoreCase("status")) {
-			voteParty.showStatus((Player)sender);
+			VoteParty.showStatus((Player)sender);
 			return true;
 		}
 		

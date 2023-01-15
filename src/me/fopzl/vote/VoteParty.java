@@ -11,62 +11,62 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import me.neoblade298.neocore.util.Util;
+
 public class VoteParty {
-	private Vote main;
-	private VotePartyConfig cfg;
+	private static VotePartyConfig cfg;
 	
-	private int points;
+	private static int points;
 	
 	public VoteParty(Vote main) {
-		this.main = main;
 		points = 0;
 	}
 	
-	public void loadConfig(YamlConfiguration cfg) {
-		this.cfg = new VotePartyConfig();
-		this.cfg.pointsToStart = cfg.getInt("general.voteparty");
+	public void loadConfig(YamlConfiguration yml) {
+		cfg = new VotePartyConfig();
+		cfg.pointsToStart = yml.getInt("general.voteparty");
 		
-		this.cfg.countdownLength = cfg.getInt("general.countdown");
-		this.cfg.countdownCommands = new HashMap<Integer, String>();
-		ConfigurationSection countdownSec = cfg.getConfigurationSection("countdown"); 
+		cfg.countdownLength = yml.getInt("general.countdown");
+		cfg.countdownCommands = new HashMap<Integer, String>();
+		ConfigurationSection countdownSec = yml.getConfigurationSection("countdown"); 
 		for(String key : countdownSec.getKeys(false)) {
 			int countNum = Integer.parseInt(key);
 			String cmd = countdownSec.getString(key);
-			this.cfg.countdownCommands.put(countNum, cmd);
+			cfg.countdownCommands.put(countNum, cmd);
 		}
 		
-		this.cfg.partyCommands = cfg.getStringList("general.voteparty-commands");
+		cfg.partyCommands = yml.getStringList("general.voteparty-commands");
 		
-		this.cfg.notifyCommand = cfg.getString("notifications.interval.command");
-		this.cfg.notifyInterval = cfg.getInt("notifications.interval.num");
+		cfg.notifyCommand = yml.getString("notifications.interval.command");
+		cfg.notifyInterval = yml.getInt("notifications.interval.num");
 		
-		this.cfg.specificNotifies = new HashMap<Integer, String>();
-		ConfigurationSection specificSec = cfg.getConfigurationSection("notifications.specific"); 
+		cfg.specificNotifies = new HashMap<Integer, String>();
+		ConfigurationSection specificSec = yml.getConfigurationSection("notifications.specific"); 
 		for(String key : specificSec.getKeys(false)) {
 			int pointNum = Integer.parseInt(key);
 			String cmd = specificSec.getString(key);
-			this.cfg.specificNotifies.put(pointNum, cmd);
+			cfg.specificNotifies.put(pointNum, cmd);
 		}
 	}
 	
-	public void showStatus(Player p) {
-		Util.sendMessageFormatted(p, "&4[&c&lMLMC&4] &e" + points + " / " + cfg.pointsToStart + " &7votes for a vote party to commence!");
+	public static void showStatus(Player p) {
+		Util.msg(p, "&e" + points + " / " + cfg.pointsToStart + " &7votes for a vote party to commence!");
 	}
 	
-	public void addPoints(int pts) {
+	public static void addPoints(int pts) {
 		points += pts;
 		tick();
 	}
 	
-	public void setPoints(int pts) {
+	public static void setPoints(int pts) {
 		points = pts;
 	}
 	
-	public int getPoints() {
+	public static int getPoints() {
 		return points;
 	}
 	
-	private void tick() {
+	private static void tick() {
 		if(points % cfg.notifyInterval == 0) {
 			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cfg.notifyCommand.replace("%points%", points + "").replace("%votesremaining%", (cfg.pointsToStart - points) + ""));
 		}
@@ -80,7 +80,7 @@ public class VoteParty {
 		tryStartCountdown();
 	}
 	
-	private void tryStartCountdown() {
+	private static void tryStartCountdown() {
 		if(points >= cfg.pointsToStart) {
 			points = 0;
 			
@@ -89,18 +89,18 @@ public class VoteParty {
 					@Override
 					public void run() {
 						Bukkit.dispatchCommand(Bukkit.getConsoleSender(), entry.getValue());
-				}}.runTaskLater(main, 20 * entry.getKey());
+				}}.runTaskLater(Vote.getInstance(), 20 * entry.getKey());
 			}
 			
 			new BukkitRunnable() {
 				@Override
 				public void run() {
 					startParty();
-			}}.runTaskLater(main, 20 * cfg.countdownLength);
+			}}.runTaskLater(Vote.getInstance(), 20 * cfg.countdownLength);
 		}
 	}
 	
-	private void startParty() {
+	private static void startParty() {
 		for(String cmd : cfg.partyCommands) {
 			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
 		}

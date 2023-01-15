@@ -1,10 +1,12 @@
-package me.fopzl.vote;
+package me.fopzl.vote.io;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
+
+import me.fopzl.vote.Vote;
 
 public class VoteStatsGlobal {
 	private static long streakLimit; // votes

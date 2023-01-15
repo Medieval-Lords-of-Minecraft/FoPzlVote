@@ -14,6 +14,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
+import me.fopzl.vote.io.VoteStatsLocal;
+
 public class VoteRewards {
 	private Map<String, Reward> allRewards;
 

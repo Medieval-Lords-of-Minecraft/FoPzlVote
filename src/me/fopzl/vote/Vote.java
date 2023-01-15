@@ -23,19 +23,20 @@ import com.vexsoftware.votifier.model.VotifierEvent;
 
 import me.fopzl.vote.commands.MLVoteCommand;
 import me.fopzl.vote.commands.VotePartyCommand;
+import me.fopzl.vote.io.VoteIO;
+import me.fopzl.vote.io.VoteInfo;
+import me.fopzl.vote.io.VoteStatsGlobal;
+import me.fopzl.vote.io.VoteStatsLocal;
 import me.fopzl.vote.listeners.ProxyListener;
 import me.fopzl.vote.listeners.VoteListener;
+import me.neoblade298.neocore.util.Util;
 
 public class Vote extends JavaPlugin {
-	private VoteListener voteListener;
 	
-	private VoteRewards rewards;
-	private VoteParty voteParty;
+	private static VoteRewards rewards;
+	private static VoteParty voteParty;
 	
-	private Map<String, VoteSiteInfo> voteSites; // key is servicename, not nickname
-	
-	private VoteInfo info;
-	private VoteIO io;
+	private static Map<String, VoteSiteInfo> voteSites; // key is servicename, not nickname
 	
 	private static Vote instance;
 	public static boolean debug = false;
@@ -45,18 +46,14 @@ public class Vote extends JavaPlugin {
 		
 		rewards = new VoteRewards();
 		voteParty = new VoteParty(this);
-		
-		info = new VoteInfo(this);
-		io = new VoteIO(this);
 
-		voteListener = new VoteListener(this);
-		getServer().getPluginManager().registerEvents(voteListener, this);
+		getServer().getPluginManager().registerEvents(new VoteListener(), this);
 		getServer().getPluginManager().registerEvents(new ProxyListener(this), this);
 
 		MLVoteCommand mlvoteCmd = new MLVoteCommand(this);
 		this.getCommand("mlvote").setExecutor(mlvoteCmd);
 		this.getCommand("mlvote").setTabCompleter(mlvoteCmd);
-		VotePartyCommand vpCmd = new VotePartyCommand(voteParty);
+		VotePartyCommand vpCmd = new VotePartyCommand();
 		this.getCommand("voteparty").setExecutor(vpCmd);
 		this.getCommand("voteparty").setTabCompleter(vpCmd);
 		
@@ -68,7 +65,7 @@ public class Vote extends JavaPlugin {
 	}
 	
 	public void onDisable() {
-		io.saveQueue();
+		VoteIO.saveQueue();
 		
 		Bukkit.getServer().getLogger().info("FoPzlVote Disabled");
 		super.onDisable();
@@ -121,83 +118,75 @@ public class Vote extends JavaPlugin {
 		VoteStatsGlobal.setStreakResetTime(cfg.getInt("streak-reset-leniency"));
 	}
 	
-	public VoteInfo getVoteInfo() {
-		return info;
-	}
-	
-	public VoteIO getVoteIO() {
-		return io;
-	}
-	
-	public VoteParty getVoteParty() {
+	public static VoteParty getVoteParty() {
 		return voteParty;
 	}
 	
-	public void cmdVote(String username, String serviceName) {
+	public static void cmdVote(String username, String serviceName) {
         JsonObject o = new JsonObject();
         o.addProperty("serviceName", serviceName);
         o.addProperty("username", username);
         o.addProperty("address", "xxx");
         o.addProperty("timestamp", "xxx");
 
-		voteListener.onVote(new VotifierEvent(new com.vexsoftware.votifier.model.Vote(o)));
+		VoteListener.onVote(new VotifierEvent(new com.vexsoftware.votifier.model.Vote(o)));
 	}
 	
-	public void incVoteParty() {
-		voteParty.addPoints(1);
+	public static void incVoteParty() {
+		VoteParty.addPoints(1);
 	}
 	
-	public void showStats(CommandSender showTo, Player player) {
-		VoteStatsGlobal stats = info.getGlobalStats(player);
+	public static void showStats(CommandSender showTo, Player player) {
+		VoteStatsGlobal stats = VoteInfo.getGlobalStats(player);
 		
-		String msg = "&4[&c&lMLMC&4] &eVote Stats for &6" + player.getName() + "&e:"
+		String msg = "&eVote Stats for &6" + player.getName() + "&e:"
 				+ "\n &eAll time votes: &7" + stats.getTotalVotes()
 				+ "\n &eVotes this month: &7" + stats.getVotesThisMonth()
 				+ "\n &eCurrent Streak: &7" + stats.getStreak();
 		
-		Util.sendMessageFormatted(showTo, msg);
+		Util.msg(showTo, msg);
 	}
 	
-	public void showCooldowns(CommandSender showTo, OfflinePlayer player) {
-		String msg = "&4[&c&lMLMC&4] &eVote Site Cooldowns for &6" + player.getName() + "&e:";
+	public static void showCooldowns(CommandSender showTo, OfflinePlayer player) {
+		String msg = "&eVote Site Cooldowns for &6" + player.getName() + "&e:";
 		for(Entry<String, VoteSiteInfo> site : voteSites.entrySet()) {
 			String cd = getCooldown(player, site.getKey());
 			msg += "\n &e" + site.getValue().nickname + ": " + cd;
 		}
 		
-		Util.sendMessageFormatted(showTo, msg);
+		Util.msg(showTo, msg);
 	}
 	
-	public void showLeaderboard(CommandSender sender) {
-		List<Object[]> topVoters = io.getTopVoters(LocalDate.now().getYear(), LocalDate.now().getMonthValue(), 10);
+	public static void showLeaderboard(CommandSender sender) {
+		List<Object[]> topVoters = VoteIO.getTopVoters(LocalDate.now().getYear(), LocalDate.now().getMonthValue(), 10);
 		int num = 1;
-		String msg = "&4[&c&lMLMC&4] &eTop Monthly Voters:";
+		String msg = "&eTop Monthly Voters:";
 		for(Object[] entry : topVoters) {
 			String username = Bukkit.getServer().getOfflinePlayer((UUID)entry[0]).getName();
 			msg += "\n&6&l" + num++ + ". &e" + username + " &7- &f" + (int)entry[1];
 		}
 		
-		Util.sendMessageFormatted(sender, msg);
+		Util.msg(sender, msg);
 	}
 	
-	public boolean isValidSite(String voteServiceName) {
+	public static boolean isValidSite(String voteServiceName) {
 		return voteSites.containsKey(voteServiceName);
 	}
 	
-	public void rewardVote(Player p) {
-		VoteStatsLocal stats = info.getLocalStats(p);
+	public static void rewardVote(Player p) {
+		VoteStatsLocal stats = VoteInfo.getLocalStats(p);
 		rewards.rewardVote(p, stats);
 	}
 	
-	public void rewardVoteQueued(Player p, int queuedVotes) {
-		VoteStatsGlobal stats = info.getGlobalStats(p);
+	public static void rewardVoteQueued(Player p, int queuedVotes) {
+		/*VoteStatsGlobal stats = VoteInfo.getGlobalStats(p);
 		for (int i = stats.voteStreak - queuedVotes + 1; i <= stats.voteStreak; i++) {
 			rewards.rewardVote(p, i);
-		}
+		}*/
 	}
 	
-	public void countVote(OfflinePlayer p, String voteServiceName) {
-		VoteStatsGlobal stats = info.getGlobalStats(p);
+	public static void countVote(OfflinePlayer p, String voteServiceName) {
+		VoteStatsGlobal stats = VoteInfo.getGlobalStats(p);
 		String nickname;
 		if(voteSites.containsKey(voteServiceName)) {
 			nickname = voteSites.get(voteServiceName).nickname;
@@ -207,26 +196,33 @@ public class Vote extends JavaPlugin {
 		stats.addVote(nickname);
 	}
 	
-	public void setCooldown(OfflinePlayer player, String voteServiceName) {
-		io.setCooldown(player, voteSites.get(voteServiceName).nickname);
+	public static void setCooldown(OfflinePlayer player, String voteServiceName) {
+		VoteIO.setCooldown(player, voteSites.get(voteServiceName).nickname);
 	}
 	
-	public String getCooldown(OfflinePlayer player, String voteServiceName) {
+	public static String getCooldown(OfflinePlayer player, String voteServiceName) {
+		/*
 		VoteSiteInfo vsi = voteSites.get(voteServiceName);
-		LocalDateTime lastVoted = io.getCooldown(player, vsi.nickname);
+		LocalDateTime lastVoted = VoteInfo.getCooldown(player, vsi.nickname);
 		
 		Duration dur = vsi.cooldown.getCooldownRemaining(lastVoted);
 		
 		if(dur.isNegative()) return "&aReady!";
 		else return String.format("&c%02d:%02d:%02d", dur.toHours(), dur.toMinutesPart(), dur.toSecondsPart());
+		*/
+		// TODO
+		return "Temp";
 	}
 	
-	public void setTotalVotes(Player p, int numVotes) {
-		info.getGlobalStats(p).totalVotes = numVotes;
-		info.getGlobalStats(p).needToSave = true;
+	public static void setTotalVotes(Player p, int numVotes) {
+		/*
+		VoteInfo.getGlobalStats(p).totalVotes = numVotes;
+		VoteInfo.getGlobalStats(p).needToSave = true;
+		*/
+		// TODO
 	}
 
-	public boolean giveReward(String username, String rewardName) {
+	public static boolean giveReward(String username, String rewardName) {
 		return rewards.giveReward(Bukkit.getServer().getPlayer(username), rewardName);
 	}
 }

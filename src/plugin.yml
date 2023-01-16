@@ -1,6 +1,6 @@
 name: FoPzlVote
 main: me.fopzl.vote.Vote
-author: [FoPzl]
+author: [FoPzl, Neoblade298]
 depend: [NeoCore]
 softdepend: [Votifier]
 version: 1.0

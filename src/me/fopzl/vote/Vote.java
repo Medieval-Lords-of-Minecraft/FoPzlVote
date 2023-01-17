@@ -16,9 +16,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.vexsoftware.votifier.google.gson.JsonObject;
-import com.vexsoftware.votifier.model.VotifierEvent;
-
+import me.fopzl.vote.bungee.VoteCooldown;
+import me.fopzl.vote.bungee.VoteSiteInfo;
 import me.fopzl.vote.commands.MLVoteCommand;
 import me.fopzl.vote.commands.VotePartyCommand;
 import me.fopzl.vote.io.VoteIO;
@@ -112,8 +111,8 @@ public class Vote extends JavaPlugin {
 			voteSites.put(vsi.serviceName, vsi);
 		}
 		
-		VoteStatsGlobal.setStreakLimit(cfg.getInt("streak-vote-limit"));
-		VoteStatsGlobal.setStreakResetTime(cfg.getInt("streak-reset-leniency"));
+		VoteStatsLocal.setStreakLimit(cfg.getInt("streak-vote-limit"));
+		VoteStatsLocal.setStreakResetTime(cfg.getInt("streak-reset-leniency"));
 	}
 	
 	public static VoteParty getVoteParty() {
@@ -181,17 +180,6 @@ public class Vote extends JavaPlugin {
 		for (int i = stats.voteStreak - queuedVotes + 1; i <= stats.voteStreak; i++) {
 			rewards.rewardVote(p, i);
 		}*/
-	}
-	
-	public static void countVote(OfflinePlayer p, String voteServiceName) {
-		VoteStatsGlobal stats = VoteInfo.getGlobalStats(p);
-		String nickname;
-		if(voteSites.containsKey(voteServiceName)) {
-			nickname = voteSites.get(voteServiceName).nickname;
-		} else {
-			nickname = voteServiceName;
-		}
-		stats.addVote(nickname);
 	}
 	
 	public static void setCooldown(OfflinePlayer player, String voteServiceName) {

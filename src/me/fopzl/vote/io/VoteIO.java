@@ -147,15 +147,14 @@ public class VoteIO implements IOComponent {
 		}.runTask(Vote.getInstance());
 	}
 	
-	public static VoteStatsGlobal tryLoadGlobalStats(OfflinePlayer p) {
+	public static VoteStatsGlobal loadGlobalStats(UUID uuid) {
 		Statement stmt = NeoCore.getStatement("FoPzlVoteIO");
-		UUID uuid = p.getUniqueId();
 		
 		try {
 			ResultSet rs = stmt.executeQuery("select * from fopzlvote_playerStats where uuid = '" + uuid + "';");
-			if(!rs.next()) return null;
+			if(!rs.next()) return new VoteStatsGlobal(uuid);
 			
-			VoteStatsGlobal vs = new VoteStatsGlobal(rs.getInt("totalVotes"), rs.getInt("voteStreak"), rs.getObject("whenLastVoted", LocalDateTime.class));
+			VoteStatsGlobal vs = new VoteStatsGlobal(uuid, rs.getInt("totalVotes"), rs.getInt("voteStreak"), rs.getObject("whenLastVoted", LocalDateTime.class));
 			
 			rs = stmt.executeQuery("select * from fopzlvote_playerHist where uuid = '" + uuid + "';");
 			while(rs.next()) {

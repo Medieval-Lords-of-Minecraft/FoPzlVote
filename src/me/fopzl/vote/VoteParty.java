@@ -14,7 +14,16 @@ import org.bukkit.scheduler.BukkitRunnable;
 import me.neoblade298.neocore.util.Util;
 
 public class VoteParty {
-	private static VotePartyConfig cfg;
+	public int pointsToStart;
+	public List<String> partyCommands; // ordered
+	
+	public int notifyInterval; // in points
+	public String notifyCommand;
+	
+	public Map<Integer, String> specificNotifies;
+
+	public int countdownLength; // in seconds
+	public Map<Integer, String> countdownCommands; // key in seconds
 	
 	private static int points;
 	
@@ -23,7 +32,6 @@ public class VoteParty {
 	}
 	
 	public void loadConfig(YamlConfiguration yml) {
-		cfg = new VotePartyConfig();
 		cfg.pointsToStart = yml.getInt("general.voteparty");
 		
 		cfg.countdownLength = yml.getInt("general.countdown");
@@ -47,37 +55,6 @@ public class VoteParty {
 			String cmd = specificSec.getString(key);
 			cfg.specificNotifies.put(pointNum, cmd);
 		}
-	}
-	
-	public static void showStatus(Player p) {
-		Util.msg(p, "&e" + points + " / " + cfg.pointsToStart + " &7votes for a vote party to commence!");
-	}
-	
-	public static void addPoints(int pts) {
-		points += pts;
-		tick();
-	}
-	
-	public static void setPoints(int pts) {
-		points = pts;
-	}
-	
-	public static int getPoints() {
-		return points;
-	}
-	
-	private static void tick() {
-		if(points % cfg.notifyInterval == 0) {
-			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cfg.notifyCommand.replace("%points%", points + "").replace("%votesremaining%", (cfg.pointsToStart - points) + ""));
-		}
-		
-		for(int i : cfg.specificNotifies.keySet()) {
-			if(points == i) {
-				Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cfg.specificNotifies.get(i));
-			}
-		}
-		
-		tryStartCountdown();
 	}
 	
 	private static void tryStartCountdown() {
@@ -105,17 +82,4 @@ public class VoteParty {
 			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
 		}
 	}
-}
-
-class VotePartyConfig {
-	public int pointsToStart;
-	public List<String> partyCommands; // ordered
-	
-	public int notifyInterval; // in points
-	public String notifyCommand;
-	
-	public Map<Integer, String> specificNotifies;
-
-	public int countdownLength; // in seconds
-	public Map<Integer, String> countdownCommands; // key in seconds
 }

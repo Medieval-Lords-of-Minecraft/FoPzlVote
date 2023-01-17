@@ -1,12 +1,19 @@
 package me.fopzl.vote.io;
 
-import java.time.LocalDateTime;
-
 public class VoteStatsLocal {
 	boolean needToSave;
-	
+
+	private static long streakLimit; // votes
+	private static long streakResetTime; // days
 	int voteStreak, votesQueued, votesQueuedNoStreak; // current
-	LocalDateTime lastVoted;
+	
+	public static void setStreakLimit(long numVotes) {
+		streakLimit = numVotes;
+	}
+	
+	public static void setStreakResetTime(long numDays) {
+		streakResetTime = numDays;
+	}
 	
 	public VoteStatsLocal() {
 		needToSave = true;
@@ -14,20 +21,17 @@ public class VoteStatsLocal {
 		voteStreak = 0;
 		votesQueued = 0;
 		votesQueuedNoStreak = 0;
-		lastVoted = LocalDateTime.of(0, 1, 1, 0, 0);
 	}
 	
-	public VoteStatsLocal(int totalVotes, int voteStreak, int votesQueued, int votesQueuedNoStreak, LocalDateTime lastVoted) {
+	public VoteStatsLocal(int totalVotes, int voteStreak, int votesQueued, int votesQueuedNoStreak) {
 		needToSave = false;
 		
 		this.voteStreak = voteStreak;
 		this.votesQueued = votesQueued;
 		this.votesQueuedNoStreak = votesQueuedNoStreak;
-		this.lastVoted = lastVoted;
 	}
 	
 	public void addVote(String site) {
-		lastVoted = LocalDateTime.now();
 		needToSave = true;
 	}
 	

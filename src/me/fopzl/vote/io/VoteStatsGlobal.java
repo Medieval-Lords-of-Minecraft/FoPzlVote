@@ -1,47 +1,36 @@
 package me.fopzl.vote.io;
 
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 
 import me.fopzl.vote.Vote;
+import me.neoblade298.bungeecore.BungeeCore;
 
 public class VoteStatsGlobal {
-	private static long streakLimit; // votes
-	private static long streakResetTime; // days
-	
-	boolean needToSave;
-	private long 
-	
+	boolean canRemove = false;
+
+	UUID uuid;
 	int totalVotes; // ever
-	int voteStreak; // current
 	LocalDateTime lastVoted;
-	Map<VoteMonth, Map<String, Integer>> monthlySiteCounts; // value is <voteSite, votes this month>
+	HashMap<VoteMonth, Map<String, Integer>> monthlySiteCounts; // value is <voteSite, votes this month>
 	
-	public static void setStreakLimit(long numVotes) {
-		streakLimit = numVotes;
-	}
-	
-	public static void setStreakResetTime(long numDays) {
-		streakResetTime = numDays;
-	}
-	
-	public VoteStatsGlobal() {
-		needToSave = true;
-		
+	public VoteStatsGlobal(UUID uuid) {
+		this.uuid = uuid;
 		totalVotes = 0;
-		voteStreak = 0;
 		lastVoted = LocalDateTime.of(0, 1, 1, 0, 0);
 		monthlySiteCounts = new HashMap<VoteMonth, Map<String, Integer>>();
 	}
 	
-	public VoteStatsGlobal(int totalVotes, int voteStreak, LocalDateTime lastVoted) {
-		needToSave = false;
-		
+	public VoteStatsGlobal(UUID uuid, int totalVotes, int voteStreak, LocalDateTime lastVoted) {
+		this.uuid = uuid;
 		this.totalVotes = totalVotes;
-		this.voteStreak = voteStreak;
 		this.lastVoted = lastVoted;
 		monthlySiteCounts = new HashMap<VoteMonth, Map<String, Integer>>();
 	}
@@ -49,12 +38,8 @@ public class VoteStatsGlobal {
 	public void addVote(String site) {
 		totalVotes++;
 		
-		if(voteStreak >= streakLimit || LocalDateTime.now().isAfter(lastVoted.plusDays(streakResetTime))) {
-			voteStreak = 0;
-		}		
-		voteStreak++;
 		if (Vote.debug) {
-			Bukkit.getLogger().info("[FoPzlVote] Set player total vote to " + totalVotes + ", vote streak to " + voteStreak);
+			Bukkit.getLogger().info("[FoPzlVote] Set player total vote to " + totalVotes);
 		}
 		
 		lastVoted = LocalDateTime.now();
@@ -64,7 +49,7 @@ public class VoteStatsGlobal {
 		currCounts.put(site, currCounts.getOrDefault(site, 0) + 1);
 		monthlySiteCounts.putIfAbsent(now, currCounts);
 		
-		needToSave = true;
+		canRemove = true;
 	}
 	
 	public int getTotalVotes() {
@@ -84,8 +69,40 @@ public class VoteStatsGlobal {
 		return sum;
 	}
 	
-	public int getStreak() {
-		return voteStreak;
+	// TODO Might be useless
+	public Runnable getSaveRunnable() {
+		return () -> {
+			try {
+				Statement stmt = BungeeCore.getPluginStatement("FoPzlVote");
+				stmt.addBatch("replace into fopzlvote_playerStats values ('" + uuid + "', " + totalVotes  + ", '" + lastVoted.toString() + "');");
+				
+				int year = LocalDateTime.now().getYear();
+				int month = LocalDateTime.now().getMonthValue();
+				VoteMonth now = new VoteMonth(year, month);
+				if(month == 1) {
+					year--;
+					month = 12;
+				}
+				VoteMonth prev = new VoteMonth(year, month);
+				
+				// only save this month and the last
+				Map<String, Integer> currCounts = monthlySiteCounts.get(now);
+				if(currCounts != null) {
+					for(Entry<String, Integer> entry : currCounts.entrySet()) {
+						stmt.addBatch("replace into fopzlvote_playerHist values ('" + uuid + "', " + year + ", " + month + ", '" + entry.getKey() + "', " + entry.getValue() + ");");
+					}
+				}
+				
+				Map<String, Integer> prevCounts = monthlySiteCounts.get(prev);
+				if(prevCounts != null) {
+					for(Entry<String, Integer> entry : prevCounts.entrySet()) {
+						stmt.addBatch("replace into fopzlvote_playerHist values ('" + uuid + "', " + year + ", " + month + ", '" + entry.getKey() + "', " + entry.getValue() + ");");
+					}
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		};
 	}
 }
 

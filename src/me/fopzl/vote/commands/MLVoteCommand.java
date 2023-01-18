@@ -11,13 +11,13 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import me.fopzl.vote.Vote;
+import me.fopzl.vote.SpigotVote;
 import me.neoblade298.neocore.util.Util;
 
 public class MLVoteCommand implements CommandExecutor, TabCompleter {
-	private Vote main;
+	private SpigotVote main;
 	
-	public MLVoteCommand(Vote main) {
+	public MLVoteCommand(SpigotVote main) {
 		this.main = main;
 	}
 
@@ -32,7 +32,7 @@ public class MLVoteCommand implements CommandExecutor, TabCompleter {
 				case "reward":
 					if(args.length < 3) return false;
 
-					if(!Vote.giveReward(args[1], args[2])) {
+					if(!SpigotVote.giveReward(args[1], args[2])) {
 						Util.msg(sender, "&7Unknown Reward: &e" + args[2]);
 					}
 					return true;
@@ -40,7 +40,7 @@ public class MLVoteCommand implements CommandExecutor, TabCompleter {
 				case "vote":
 					if(args.length < 3) return false;
 					
-					Vote.cmdVote(args[1], args[2]);
+					SpigotVote.cmdVote(args[1], args[2]);
 					return true;
 				case "setvotes":
 					if(args.length < 3) return false;
@@ -51,15 +51,15 @@ public class MLVoteCommand implements CommandExecutor, TabCompleter {
 						Util.msg(sender, "&7Player &e" + args[1] + " &7offline.");
 						return true;
 					}
-					Vote.setTotalVotes(onlinePlayer, numVotes);
+					SpigotVote.setTotalVotes(onlinePlayer, numVotes);
 					return true;
 				case "reload":
 					main.loadAllConfigs();
 					Util.msg(sender, "&7Reloaded config");
 					return true;
 				case "debug":
-					Vote.debug = !Vote.debug;
-					Util.msg(sender, "&7Set debug to " + Vote.debug);
+					SpigotVote.debug = !SpigotVote.debug;
+					Util.msg(sender, "&7Set debug to " + SpigotVote.debug);
 					return true;
 			}
 		}
@@ -73,22 +73,22 @@ public class MLVoteCommand implements CommandExecutor, TabCompleter {
 					Util.msg(sender, "&7Player &e" + args[1] + " &7offline.");
 					return true;
 				}
-				Vote.showStats(sender, onlinePlayer);
+				SpigotVote.showStats(sender, onlinePlayer);
 			} else {
-				Vote.showStats(sender, (Player)sender);
+				SpigotVote.showStats(sender, (Player)sender);
 			}
 			return true;
 		case "cooldown":
 			if(!(sender instanceof Player)) return false;
 			if(args.length > 1) {
 				OfflinePlayer player = Bukkit.getOfflinePlayer(args[1]);
-				Vote.showCooldowns(sender, player);
+				SpigotVote.showCooldowns(sender, player);
 			} else {
-				Vote.showCooldowns(sender, (Player)sender);
+				SpigotVote.showCooldowns(sender, (Player)sender);
 			}
 			return true;
 		case "leaderboard":
-			Vote.showLeaderboard(sender);
+			SpigotVote.showLeaderboard(sender);
 			return true;
 		}
 		

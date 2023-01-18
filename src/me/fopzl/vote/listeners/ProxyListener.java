@@ -7,12 +7,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
-import me.fopzl.vote.Vote;
+import me.fopzl.vote.SpigotVote;
 import me.neoblade298.neocore.bungee.PluginMessageEvent;
 
 public class ProxyListener implements Listener {
-	Vote main;
-	public ProxyListener(Vote main) {
+	SpigotVote main;
+	public ProxyListener(SpigotVote main) {
 		this.main = main;
 	}
 	@EventHandler

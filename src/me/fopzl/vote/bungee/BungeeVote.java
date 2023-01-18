@@ -13,27 +13,22 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import com.alessiodp.lastloginapi.api.LastLogin;
 import com.alessiodp.lastloginapi.api.interfaces.LastLoginPlayer;
-import com.vexsoftware.votifier.bungee.events.VotifierEvent;
 
-import me.fopzl.vote.Vote;
+import me.fopzl.vote.SpigotVote;
 import me.fopzl.vote.io.VoteIO;
 import me.fopzl.vote.io.VoteInfo;
 import me.fopzl.vote.io.VoteStatsGlobal;
 import me.fopzl.vote.io.VoteStatsLocal;
 import me.neoblade298.bungeecore.util.BUtil;
 import me.neoblade298.neocore.bungee.BungeeAPI;
-import me.neoblade298.neoleaderboard.points.PlayerEntry;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.event.EventHandler;
 
 public class BungeeVote extends Plugin implements Listener
 {
-	private static HashMap<UUID, VoteStatsGlobal> globalStats = new HashMap<UUID, VoteStatsGlobal>();
 	private static HashMap<String, VoteSiteInfo> voteSites = new HashMap<String, VoteSiteInfo>();
 	private static BungeeVote inst;
-
-	private static int pointsForVoteParty;
 	
 	private static Comparator<LastLoginPlayer> comp = new Comparator<LastLoginPlayer>() {
 		@Override
@@ -54,7 +49,7 @@ public class BungeeVote extends Plugin implements Listener
         // getProxy().getPluginManager().registerCommand(this, new CmdHub());
         getProxy().getPluginManager().registerListener(this, this);
         getProxy().registerChannel("neocore:bungee");
-        new VoteIO();
+        new VoteIO(true);
         inst = this;
         
         reload();
@@ -86,11 +81,11 @@ public class BungeeVote extends Plugin implements Listener
 	}
 
 	@EventHandler
-	public static void onVote(final VotifierEvent e) {
-		com.vexsoftware.votifier.model.Vote vote = e.getVote();
+	public static void onVote() {
+		com.vexsoftware.votifier.model.Vote vote = null;
 		String site = vote.getServiceName();
 		String user = vote.getUsername();
-		if (Vote.isValidSite(site) || site.equalsIgnoreCase("freevote")) {
+		if (SpigotVote.isValidSite(site) || site.equalsIgnoreCase("freevote")) {
 			if (!user.matches("[a-zA-Z0-9]*")) {
 				BungeeVote.inst().getProxy().getLogger().warning("[FopzlVote] Vote failed due to invalid username: " + user);
 				return;
@@ -98,66 +93,33 @@ public class BungeeVote extends Plugin implements Listener
 			
 			BUtil.broadcast("&e" + user + " &7just voted on &c" + site + "&7!");
 			
-			// Get a list of UUIDs that it could be
-			Set<? extends LastLoginPlayer> potentialVoters = LastLogin.getApi().getPlayerByName(user);
 			UUID uuid;
-			if (potentialVoters.size() == 0) {
-				BungeeVote.inst().getProxy().getLogger().warning("[FopzlVote] Vote failed due to username never having logged on before: " + user);
-				return;
+			// Player is currently online somewhere
+			if (inst.getProxy().getPlayer(vote.getUsername()) != null) {
+				uuid = inst.getProxy().getPlayer(vote.getUsername()).getUniqueId();
 			}
-			
-			// If there's only one username match, make that the uuid
-			else if (potentialVoters.size() == 1) {
-				uuid = potentialVoters.stream().findAny().get().getPlayerUUID();
-			}
-			
-			// If there's more than one username match, use the uuid of the most recent login
+			// Player is not online anywhere, check for last login for given name
 			else {
-				uuid = potentialVoters.stream().max(comp).get().getPlayerUUID();
-			}
-			countVote(uuid, site);
-			
-			/*
-			if(p.isOnline()) {
-				main.rewardVote(p.getPlayer());
-			} else {
-				UUID uuid = p.getUniqueId();
-				VoteIO.addOfflinePlayer(uuid);
-				Map<String, Integer> pq = null;
-				Map<UUID, Map<String, Integer>> qr = VoteInfo.queuedRewards;
-				
-				if(!qr.containsKey(uuid)) {
-					pq = new HashMap<String, Integer>();
-					qr.put(uuid, pq);
-				} else {
-					pq = qr.get(uuid);
+				Set<? extends LastLoginPlayer> potentialVoters = LastLogin.getApi().getPlayerByName(user);
+				if (potentialVoters.size() == 0) {
+					BungeeVote.inst().getProxy().getLogger().warning("[FopzlVote] Vote failed due to username never having logged on before: " + user);
+					return;
 				}
-				pq.put(site, pq.getOrDefault(site, 0) + 1);
+				
+				// If there's only one username match, make that the uuid
+				else if (potentialVoters.size() == 1) {
+					uuid = potentialVoters.stream().findAny().get().getPlayerUUID();
+				}
+				
+				// If there's more than one username match, use the uuid of the most recent login
+				else {
+					uuid = potentialVoters.stream().max(comp).get().getPlayerUUID();
+				}
+				
+				// If the player isn't online somewhere, manually update VoteStatsGlobal sql
+				VoteIO.setCooldown(uuid, voteSites.get(site).nickname);
 			}
-			
-			main.incVoteParty();
-			main.setCooldown(p, site);
-			*/
-		}
-	}
-	
-	public static void countVote(UUID uuid, String voteServiceName) {
-		VoteStatsGlobal stats = loadGlobalStats(uuid);
-		String nickname;
-		if(voteSites.containsKey(voteServiceName)) {
-			nickname = voteSites.get(voteServiceName).nickname;
-		} else {
-			nickname = voteServiceName;
-		}
-		stats.addVote(nickname);
-	}
-	
-	private static VoteStatsGlobal loadGlobalStats(UUID uuid) {
-		if (globalStats.containsKey(uuid)) {
-			return globalStats.get(uuid);
-		}
-		else {
-			VoteIO.tryLoadGlobalStats(uuid);
+			BungeeVoteParty.addPoints(1);
 		}
 	}
 	

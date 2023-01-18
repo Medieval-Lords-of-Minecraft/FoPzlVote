@@ -16,7 +16,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import me.fopzl.vote.bungee.VoteCooldown;
 import me.fopzl.vote.bungee.VoteSiteInfo;
 import me.fopzl.vote.commands.MLVoteCommand;
 import me.fopzl.vote.commands.VotePartyCommand;
@@ -28,21 +27,21 @@ import me.fopzl.vote.listeners.ProxyListener;
 import me.fopzl.vote.listeners.VoteListener;
 import me.neoblade298.neocore.util.Util;
 
-public class Vote extends JavaPlugin {
+public class SpigotVote extends JavaPlugin {
 	
 	private static VoteRewards rewards;
 	private static VoteParty voteParty;
 	
 	private static Map<String, VoteSiteInfo> voteSites; // key is servicename, not nickname
 	
-	private static Vote instance;
+	private static SpigotVote instance;
 	public static boolean debug = false;
 	
 	public void onEnable() {
 		super.onEnable();
 		
 		rewards = new VoteRewards();
-		voteParty = new VoteParty(this);
+		voteParty = new VoteParty();
 
 		getServer().getPluginManager().registerEvents(new VoteListener(), this);
 		getServer().getPluginManager().registerEvents(new ProxyListener(this), this);
@@ -68,7 +67,7 @@ public class Vote extends JavaPlugin {
 		super.onDisable();
 	}
 	
-	public static Vote getInstance() {
+	public static SpigotVote getInstance() {
 		return instance;
 	}
 	
@@ -77,22 +76,22 @@ public class Vote extends JavaPlugin {
 		if(!mainCfg.exists()) {
 			saveResource("config.yml", false);
 		}
-		this.loadConfig(YamlConfiguration.loadConfiguration(mainCfg));
+		this.reload(YamlConfiguration.loadConfiguration(mainCfg));
 
 		File rewardsCfg = new File(getDataFolder(), "rewards.yml");
 		if(!rewardsCfg.exists()) {
 			saveResource("rewards.yml", false);
 		}
-		rewards.loadConfig(YamlConfiguration.loadConfiguration(rewardsCfg));	
+		rewards.reload(YamlConfiguration.loadConfiguration(rewardsCfg));	
 		
 		File votepartyCfg = new File(getDataFolder(), "voteparty.yml");
 		if(!votepartyCfg.exists()) {
 			saveResource("voteparty.yml", false);
 		}
-		voteParty.loadConfig(YamlConfiguration.loadConfiguration(votepartyCfg));
+		voteParty.reload(YamlConfiguration.loadConfiguration(votepartyCfg));
 	}
 	
-	public void loadConfig(YamlConfiguration cfg) {
+	public void reload(YamlConfiguration cfg) {
 		voteSites = new HashMap<String, VoteSiteInfo>();
 		
 		ConfigurationSection siteSec = cfg.getConfigurationSection("websites");
@@ -106,7 +105,7 @@ public class Vote extends JavaPlugin {
 			int cdTime = subSec.getInt("cooldownTime");
 			String timezone = subSec.getString("timezone");
 			
-			vsi.cooldown = new VoteCooldown(cdType, cdTime, timezone);
+			//vsi.cooldown = new VoteCooldown(cdType, cdTime, timezone);
 			
 			voteSites.put(vsi.serviceName, vsi);
 		}
@@ -120,6 +119,7 @@ public class Vote extends JavaPlugin {
 	}
 	
 	public static void cmdVote(String username, String serviceName) {
+		/*
         JsonObject o = new JsonObject();
         o.addProperty("serviceName", serviceName);
         o.addProperty("username", username);
@@ -127,19 +127,17 @@ public class Vote extends JavaPlugin {
         o.addProperty("timestamp", "xxx");
 
 		VoteListener.onVote(new VotifierEvent(new com.vexsoftware.votifier.model.Vote(o)));
-	}
-	
-	public static void incVoteParty() {
-		VoteParty.addPoints(1);
+		*/
 	}
 	
 	public static void showStats(CommandSender showTo, Player player) {
 		VoteStatsGlobal stats = VoteInfo.getGlobalStats(player);
+		VoteStatsLocal local = VoteInfo.getLocalStats(player);
 		
 		String msg = "&eVote Stats for &6" + player.getName() + "&e:"
 				+ "\n &eAll time votes: &7" + stats.getTotalVotes()
 				+ "\n &eVotes this month: &7" + stats.getVotesThisMonth()
-				+ "\n &eCurrent Streak: &7" + stats.getStreak();
+				+ "\n &eCurrent Streak: &7" + local.getStreak();
 		
 		Util.msg(showTo, msg);
 	}
@@ -180,10 +178,6 @@ public class Vote extends JavaPlugin {
 		for (int i = stats.voteStreak - queuedVotes + 1; i <= stats.voteStreak; i++) {
 			rewards.rewardVote(p, i);
 		}*/
-	}
-	
-	public static void setCooldown(OfflinePlayer player, String voteServiceName) {
-		VoteIO.setCooldown(player, voteSites.get(voteServiceName).nickname);
 	}
 	
 	public static String getCooldown(OfflinePlayer player, String voteServiceName) {

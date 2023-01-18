@@ -2,7 +2,7 @@ package me.fopzl.vote.listeners;
 
 import com.vexsoftware.votifier.model.VotifierEvent;
 
-import me.fopzl.vote.Vote;
+import me.fopzl.vote.SpigotVote;
 import me.fopzl.vote.io.VoteIO;
 import me.neoblade298.neocore.bungee.BungeeAPI;
 
@@ -21,11 +21,11 @@ public class VoteListener implements Listener {
 	public static void onVote(final VotifierEvent e) {
 		com.vexsoftware.votifier.model.Vote vote = e.getVote();
 		String site = vote.getServiceName();
-		if(Vote.isValidSite(site) || site.equalsIgnoreCase("freevote")) {
+		if(SpigotVote.isValidSite(site) || site.equalsIgnoreCase("freevote")) {
 			OfflinePlayer p = Bukkit.getServer().getOfflinePlayer(vote.getUsername());
 			BungeeAPI.broadcast("&4[&c&lMLMC&4] &e" + p.getName() + " &7just voted on &c" + site + "&7!");
 			
-			Vote.countVote(p, site);
+			SpigotVote.countVote(p, site);
 			BungeeAPI.sendPluginMessage("fopzlvote-vote", new String[] { p.getUniqueId().toString() });
 			
 			/*

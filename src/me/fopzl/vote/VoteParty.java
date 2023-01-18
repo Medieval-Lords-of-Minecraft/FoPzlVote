@@ -8,77 +8,44 @@ import java.util.Map.Entry;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import me.neoblade298.neocore.util.Util;
-
 public class VoteParty {
-	public int pointsToStart;
-	public List<String> partyCommands; // ordered
+	public static List<String> partyCommands; // ordered
+	public static int countdownLength; // in seconds
+	public static Map<Integer, String> countdownCommands; // key in seconds
 	
-	public int notifyInterval; // in points
-	public String notifyCommand;
-	
-	public Map<Integer, String> specificNotifies;
-
-	public int countdownLength; // in seconds
-	public Map<Integer, String> countdownCommands; // key in seconds
-	
-	private static int points;
-	
-	public VoteParty(Vote main) {
-		points = 0;
-	}
-	
-	public void loadConfig(YamlConfiguration yml) {
-		cfg.pointsToStart = yml.getInt("general.voteparty");
-		
-		cfg.countdownLength = yml.getInt("general.countdown");
-		cfg.countdownCommands = new HashMap<Integer, String>();
+	public void reload(YamlConfiguration yml) {
+		countdownLength = yml.getInt("general.countdown");
+		countdownCommands = new HashMap<Integer, String>();
 		ConfigurationSection countdownSec = yml.getConfigurationSection("countdown"); 
 		for(String key : countdownSec.getKeys(false)) {
 			int countNum = Integer.parseInt(key);
 			String cmd = countdownSec.getString(key);
-			cfg.countdownCommands.put(countNum, cmd);
+			countdownCommands.put(countNum, cmd);
 		}
 		
-		cfg.partyCommands = yml.getStringList("general.voteparty-commands");
-		
-		cfg.notifyCommand = yml.getString("notifications.interval.command");
-		cfg.notifyInterval = yml.getInt("notifications.interval.num");
-		
-		cfg.specificNotifies = new HashMap<Integer, String>();
-		ConfigurationSection specificSec = yml.getConfigurationSection("notifications.specific"); 
-		for(String key : specificSec.getKeys(false)) {
-			int pointNum = Integer.parseInt(key);
-			String cmd = specificSec.getString(key);
-			cfg.specificNotifies.put(pointNum, cmd);
-		}
+		partyCommands = yml.getStringList("general.voteparty-commands");
 	}
 	
-	private static void tryStartCountdown() {
-		if(points >= cfg.pointsToStart) {
-			points = 0;
-			
-			for(Entry<Integer, String> entry : cfg.countdownCommands.entrySet()) {
-				new BukkitRunnable() {
-					@Override
-					public void run() {
-						Bukkit.dispatchCommand(Bukkit.getConsoleSender(), entry.getValue());
-				}}.runTaskLater(Vote.getInstance(), 20 * entry.getKey());
-			}
-			
+	public static void startCountdown() {
+		for(Entry<Integer, String> entry : countdownCommands.entrySet()) {
 			new BukkitRunnable() {
 				@Override
 				public void run() {
-					startParty();
-			}}.runTaskLater(Vote.getInstance(), 20 * cfg.countdownLength);
+					Bukkit.dispatchCommand(Bukkit.getConsoleSender(), entry.getValue());
+			}}.runTaskLater(SpigotVote.getInstance(), 20 * entry.getKey());
 		}
+		
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				startParty();
+		}}.runTaskLater(SpigotVote.getInstance(), 20 * countdownLength);
 	}
 	
 	private static void startParty() {
-		for(String cmd : cfg.partyCommands) {
+		for(String cmd : partyCommands) {
 			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
 		}
 	}

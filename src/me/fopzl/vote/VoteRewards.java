@@ -22,7 +22,7 @@ public class VoteRewards {
 	private Reward dailyReward;
 	private Map<Integer, Set<Reward>> streakRewards;
 	
-	public void loadConfig(YamlConfiguration cfg) {
+	public void reload(YamlConfiguration cfg) {
 		allRewards = new HashMap<String, Reward>();
 		
 		ConfigurationSection sec = cfg.getConfigurationSection("rewards");

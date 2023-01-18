@@ -29,9 +29,9 @@ public class VoteInfo {
 		if(globalStats.containsKey(uuid)) {
 			return globalStats.get(uuid);
 		} else {
-			VoteStatsGlobal vs = VoteIO.tryLoadGlobalStats(p);
+			VoteStatsGlobal vs = VoteIO.loadGlobalStats(p.getUniqueId());
 			if(vs == null) {
-				vs = new VoteStatsGlobal();
+				vs = new VoteStatsGlobal(p.getUniqueId());
 				globalStats.put(uuid, vs);
 			}
 			
@@ -44,13 +44,17 @@ public class VoteInfo {
 		if(localStats.containsKey(uuid)) {
 			return localStats.get(uuid);
 		} else {
-			VoteStatsLocal vs = VoteIO.tryLoadLocalStats(p);
+			/*
+			VoteStatsLocal vs = VoteIO.loadLocalStats(p.getUniqueId());
 			if(vs == null) {
 				vs = new VoteStatsLocal();
 				localStats.put(uuid, vs);
 			}
 			
 			return vs;
+			*/
+			// TODO
+			return null;
 		}
 	}
 }

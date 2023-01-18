@@ -17,6 +17,7 @@ public class VotePartyCommand implements CommandExecutor, TabCompleter {
 	public boolean onCommand(CommandSender sender, Command cmd, String lbl, String[] args) {
 		if(args.length < 1) return false;
 		
+		/*
 		if(sender.hasPermission("mlvote.admin")) {
 			switch(args[0]) {
 				case "add":
@@ -34,6 +35,7 @@ public class VotePartyCommand implements CommandExecutor, TabCompleter {
 			VoteParty.showStatus((Player)sender);
 			return true;
 		}
+		*/
 		
 		return false;
 	}

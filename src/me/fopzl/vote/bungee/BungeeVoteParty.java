@@ -10,7 +10,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import me.fopzl.vote.Vote;
+import me.fopzl.vote.SpigotVote;
 import me.neoblade298.bungeecore.BungeeCore;
 import me.neoblade298.neocore.util.Util;
 

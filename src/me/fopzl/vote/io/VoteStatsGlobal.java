@@ -10,7 +10,7 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 
-import me.fopzl.vote.Vote;
+import me.fopzl.vote.SpigotVote;
 import me.neoblade298.bungeecore.BungeeCore;
 
 public class VoteStatsGlobal {
@@ -38,7 +38,7 @@ public class VoteStatsGlobal {
 	public void addVote(String site) {
 		totalVotes++;
 		
-		if (Vote.debug) {
+		if (SpigotVote.debug) {
 			Bukkit.getLogger().info("[FoPzlVote] Set player total vote to " + totalVotes);
 		}
 		

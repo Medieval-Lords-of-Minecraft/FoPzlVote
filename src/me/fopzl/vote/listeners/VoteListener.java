@@ -1,19 +1,14 @@
 package me.fopzl.vote.listeners;
 
-import com.vexsoftware.votifier.model.VotifierEvent;
-
 import me.fopzl.vote.SpigotVote;
-import me.fopzl.vote.io.VoteIO;
 import me.neoblade298.neocore.bungee.BungeeAPI;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+
+import com.vexsoftware.votifier.model.VotifierEvent;
 
 public class VoteListener implements Listener {
 	@SuppressWarnings("deprecation")
@@ -25,7 +20,6 @@ public class VoteListener implements Listener {
 			OfflinePlayer p = Bukkit.getServer().getOfflinePlayer(vote.getUsername());
 			BungeeAPI.broadcast("&4[&c&lMLMC&4] &e" + p.getName() + " &7just voted on &c" + site + "&7!");
 			
-			SpigotVote.countVote(p, site);
 			BungeeAPI.sendPluginMessage("fopzlvote-vote", new String[] { p.getUniqueId().toString() });
 			
 			/*

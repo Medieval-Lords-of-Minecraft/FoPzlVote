@@ -35,6 +35,10 @@ public class VoteStatsGlobal {
 		monthlySiteCounts = new HashMap<VoteMonth, Map<String, Integer>>();
 	}
 	
+	public LocalDateTime getLastVoted() {
+		return lastVoted;
+	}
+	
 	public void addVote(String site) {
 		totalVotes++;
 		
@@ -103,6 +107,10 @@ public class VoteStatsGlobal {
 				e.printStackTrace();
 			}
 		};
+	}
+	
+	public boolean isStreakLost() {
+		return LocalDateTime.now().isAfter(lastVoted.plusDays(2));
 	}
 }
 

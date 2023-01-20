@@ -1,7 +1,9 @@
 package me.fopzl.vote;
 
 import java.io.File;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,14 +18,12 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import me.fopzl.vote.bungee.VoteSiteInfo;
 import me.fopzl.vote.commands.MLVoteCommand;
 import me.fopzl.vote.commands.VotePartyCommand;
 import me.fopzl.vote.io.VoteIO;
-import me.fopzl.vote.io.VoteInfo;
+import me.fopzl.vote.io.VoteStats;
 import me.fopzl.vote.io.VoteStatsGlobal;
 import me.fopzl.vote.io.VoteStatsLocal;
-import me.fopzl.vote.listeners.ProxyListener;
 import me.fopzl.vote.listeners.VoteListener;
 import me.neoblade298.neocore.util.Util;
 
@@ -33,6 +33,8 @@ public class SpigotVote extends JavaPlugin {
 	private static VoteParty voteParty;
 	
 	private static Map<String, VoteSiteInfo> voteSites; // key is servicename, not nickname
+	private static HashMap<UUID, VoteStatsGlobal> globalStats = new HashMap<UUID, VoteStatsGlobal>();
+	private static HashMap<UUID, VoteStatsLocal> localStats = new HashMap<UUID, VoteStatsLocal>();
 	
 	private static SpigotVote instance;
 	public static boolean debug = false;
@@ -44,7 +46,6 @@ public class SpigotVote extends JavaPlugin {
 		voteParty = new VoteParty();
 
 		getServer().getPluginManager().registerEvents(new VoteListener(), this);
-		getServer().getPluginManager().registerEvents(new ProxyListener(this), this);
 
 		MLVoteCommand mlvoteCmd = new MLVoteCommand(this);
 		this.getCommand("mlvote").setExecutor(mlvoteCmd);
@@ -105,7 +106,7 @@ public class SpigotVote extends JavaPlugin {
 			int cdTime = subSec.getInt("cooldownTime");
 			String timezone = subSec.getString("timezone");
 			
-			//vsi.cooldown = new VoteCooldown(cdType, cdTime, timezone);
+			vsi.cooldown = new VoteCooldown(cdType, cdTime, timezone);
 			
 			voteSites.put(vsi.serviceName, vsi);
 		}
@@ -131,8 +132,8 @@ public class SpigotVote extends JavaPlugin {
 	}
 	
 	public static void showStats(CommandSender showTo, Player player) {
-		VoteStatsGlobal stats = VoteInfo.getGlobalStats(player);
-		VoteStatsLocal local = VoteInfo.getLocalStats(player);
+		VoteStatsGlobal stats = VoteStats.getGlobalStats(player.getUniqueId());
+		VoteStatsLocal local = VoteStats.getLocalStats(player.getUniqueId());
 		
 		String msg = "&eVote Stats for &6" + player.getName() + "&e:"
 				+ "\n &eAll time votes: &7" + stats.getTotalVotes()
@@ -145,7 +146,7 @@ public class SpigotVote extends JavaPlugin {
 	public static void showCooldowns(CommandSender showTo, OfflinePlayer player) {
 		String msg = "&eVote Site Cooldowns for &6" + player.getName() + "&e:";
 		for(Entry<String, VoteSiteInfo> site : voteSites.entrySet()) {
-			String cd = getCooldown(player, site.getKey());
+			String cd = getCooldown(player.getUniqueId(), site.getKey());
 			msg += "\n &e" + site.getValue().nickname + ": " + cd;
 		}
 		
@@ -169,7 +170,7 @@ public class SpigotVote extends JavaPlugin {
 	}
 	
 	public static void rewardVote(Player p) {
-		VoteStatsLocal stats = VoteInfo.getLocalStats(p);
+		VoteStatsLocal stats = VoteStats.getLocalStats(p.getUniqueId());
 		rewards.rewardVote(p, stats);
 	}
 	
@@ -180,18 +181,14 @@ public class SpigotVote extends JavaPlugin {
 		}*/
 	}
 	
-	public static String getCooldown(OfflinePlayer player, String voteServiceName) {
-		/*
+	public static String getCooldown(UUID uuid, String voteServiceName) {
 		VoteSiteInfo vsi = voteSites.get(voteServiceName);
-		LocalDateTime lastVoted = VoteInfo.getCooldown(player, vsi.nickname);
+		LocalDateTime lastVoted = globalStats.get(uuid).getLastVoted();
 		
 		Duration dur = vsi.cooldown.getCooldownRemaining(lastVoted);
 		
 		if(dur.isNegative()) return "&aReady!";
 		else return String.format("&c%02d:%02d:%02d", dur.toHours(), dur.toMinutesPart(), dur.toSecondsPart());
-		*/
-		// TODO
-		return "Temp";
 	}
 	
 	public static void setTotalVotes(Player p, int numVotes) {

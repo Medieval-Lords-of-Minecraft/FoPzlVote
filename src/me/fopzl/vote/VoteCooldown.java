@@ -1,17 +1,11 @@
-package me.fopzl.vote.bungee;
+package me.fopzl.vote;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
-public class VoteSiteInfo {
-	public String nickname;
-	public String serviceName;
-	public VoteCooldown cooldown;
-}
-
-class VoteCooldown {
+public class VoteCooldown {
 	private boolean fixedReset; // if true, cooldown resets at a fixed time each day; else, cooldown resets after some amount of time since last vote
 	private int resetTime; // for a fixed reset, this is the 0-indexed hour of day; otherwise, this is the number of hours needed to wait after last vote
 	private String timezone; // only needed for a fixed reset

@@ -6,12 +6,10 @@ import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
-import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -20,7 +18,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import me.fopzl.vote.SpigotVote;
-import me.fopzl.vote.VoteParty;
 import me.fopzl.vote.bungee.BungeeVote;
 import me.fopzl.vote.bungee.BungeeVoteParty;
 import me.neoblade298.neocore.NeoCore;
@@ -63,16 +60,16 @@ public class VoteIO implements IOComponent {
 	@Override
 	public void savePlayer(Player p, Statement insert, Statement delete) {
 		autosavePlayer(p, insert, delete);
-		VoteInfo.globalStats.remove(p.getUniqueId());
-		VoteInfo.localStats.remove(p.getUniqueId());
+		VoteStats.globalStats.remove(p.getUniqueId());
+		VoteStats.localStats.remove(p.getUniqueId());
 	}
 	
 	@Override
 	public void autosavePlayer(Player p, Statement insert, Statement delete) {
 		UUID uuid = p.getUniqueId();
-		if(!VoteInfo.globalStats.containsKey(uuid)) return;
+		if(!VoteStats.globalStats.containsKey(uuid)) return;
 		
-		VoteStatsGlobal vs = VoteInfo.globalStats.get(uuid);
+		VoteStatsGlobal vs = VoteStats.globalStats.get(uuid);
 		if(!vs.canRemove) return;
 		vs.canRemove = false;
 		
@@ -129,7 +126,7 @@ public class VoteIO implements IOComponent {
 				vs.monthlySiteCounts.putIfAbsent(voteMonth, monthCounts);
 			}
 			
-			VoteInfo.globalStats.put(uuid, vs);
+			VoteStats.globalStats.put(uuid, vs);
 		} catch (SQLException e) {
 			Bukkit.getLogger().warning("Failed to load vote data for player " + p.getName());
 			e.printStackTrace();
@@ -138,7 +135,7 @@ public class VoteIO implements IOComponent {
 		new BukkitRunnable() {
 			@Override
 			public void run() {
-				Map<UUID, Map<String, Integer>> qr = VoteInfo.queuedRewards;
+				Map<UUID, Map<String, Integer>> qr = VoteStats.queuedRewards;
 				if(qr.containsKey(uuid)) {
 					Map<String, Integer> sites = qr.remove(uuid);
 					int sum = 0;
@@ -152,12 +149,17 @@ public class VoteIO implements IOComponent {
 		}.runTask(SpigotVote.getInstance());
 	}
 	
-	public static VoteStatsGlobal loadGlobalStats(UUID uuid) {
+	// Should only be accessed by VoteStats
+	protected static VoteStatsGlobal loadGlobalStats(UUID uuid) {
 		Statement stmt = NeoCore.getStatement("FoPzlVoteIO");
 		
 		try {
 			ResultSet rs = stmt.executeQuery("select * from fopzlvote_playerStats where uuid = '" + uuid + "';");
-			if(!rs.next()) return new VoteStatsGlobal(uuid);
+			if(!rs.next()) {
+				VoteStatsGlobal stats = new VoteStatsGlobal(uuid);
+				VoteStats.putGlobalStats(uuid, stats);
+				return stats;
+			}
 			
 			VoteStatsGlobal vs = new VoteStatsGlobal(uuid, rs.getInt("totalVotes"), rs.getInt("voteStreak"), rs.getObject("whenLastVoted", LocalDateTime.class));
 			
@@ -172,15 +174,17 @@ public class VoteIO implements IOComponent {
 				vs.monthlySiteCounts.putIfAbsent(voteMonth, monthCounts);
 			}
 			
-			VoteInfo.putGlobalStats(uuid, vs);
+			VoteStats.putGlobalStats(uuid, vs);
 			
 			return vs;
 		} catch (SQLException e) {
 			Bukkit.getLogger().warning("Failed to load vote data for uuid " + uuid);
 			e.printStackTrace();
 		}
-		
-		return new VoteStatsGlobal(uuid);
+
+		VoteStatsGlobal stats = new VoteStatsGlobal(uuid);
+		VoteStats.putGlobalStats(uuid, stats);
+		return stats;
 	}
 	
 	public static void saveVoteParty() {
@@ -224,7 +228,7 @@ public class VoteIO implements IOComponent {
 			e.printStackTrace();
 		}
 		
-		for(Entry<UUID, Map<String, Integer>> entry : VoteInfo.queuedRewards.entrySet()) {
+		for(Entry<UUID, Map<String, Integer>> entry : VoteStats.queuedRewards.entrySet()) {
 			UUID uuid = entry.getKey();
 			try {
 				for(Entry<String, Integer> subEntry : entry.getValue().entrySet()) {
@@ -270,9 +274,8 @@ public class VoteIO implements IOComponent {
 		return topVoters;
 	}
 	
-	public static void setCooldown(UUID uuid, String voteSite) {
+	public static void setCooldown(Statement stmt, UUID uuid, String voteSite) {
 		try {
-			Statement stmt = NeoCore.getPluginStatement("FoPzlVote");
 			String whenLastVoted = LocalDateTime.now().toString();
 			
 			stmt.execute("replace into fopzlvote_siteCooldowns values ('" + uuid + "', '" + voteSite + "', '" + whenLastVoted + "');");

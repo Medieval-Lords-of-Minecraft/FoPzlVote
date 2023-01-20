@@ -1,16 +1,12 @@
 package me.fopzl.vote.bungee;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
-
-import me.fopzl.vote.SpigotVote;
 import me.neoblade298.bungeecore.BungeeCore;
 import me.neoblade298.neocore.util.Util;
 

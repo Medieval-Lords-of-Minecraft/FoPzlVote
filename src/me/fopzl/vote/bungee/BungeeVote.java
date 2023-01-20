@@ -1,26 +1,30 @@
 package me.fopzl.vote.bungee;
 
 import java.io.File;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.UUID;
 
-import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import com.alessiodp.lastloginapi.api.LastLogin;
 import com.alessiodp.lastloginapi.api.interfaces.LastLoginPlayer;
+import com.vexsoftware.votifier.bungee.events.VotifierEvent;
+import com.vexsoftware.votifier.model.Vote;
 
 import me.fopzl.vote.SpigotVote;
+import me.fopzl.vote.VoteCooldown;
+import me.fopzl.vote.VoteSiteInfo;
 import me.fopzl.vote.io.VoteIO;
 import me.fopzl.vote.io.VoteInfo;
 import me.fopzl.vote.io.VoteStatsGlobal;
-import me.fopzl.vote.io.VoteStatsLocal;
+import me.neoblade298.bungeecore.BungeeCore;
 import me.neoblade298.bungeecore.util.BUtil;
-import me.neoblade298.neocore.bungee.BungeeAPI;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.event.EventHandler;
@@ -81,8 +85,8 @@ public class BungeeVote extends Plugin implements Listener
 	}
 
 	@EventHandler
-	public static void onVote() {
-		com.vexsoftware.votifier.model.Vote vote = null;
+	public static void onVote(VotifierEvent e) {
+		Vote vote = e.getVote();
 		String site = vote.getServiceName();
 		String user = vote.getUsername();
 		if (SpigotVote.isValidSite(site) || site.equalsIgnoreCase("freevote")) {
@@ -93,13 +97,10 @@ public class BungeeVote extends Plugin implements Listener
 			
 			BUtil.broadcast("&e" + user + " &7just voted on &c" + site + "&7!");
 			
+			// If the player is online, do nothing. Otherwise, manually update VoteStatsGlobal sql
 			UUID uuid;
-			// Player is currently online somewhere
-			if (inst.getProxy().getPlayer(vote.getUsername()) != null) {
-				uuid = inst.getProxy().getPlayer(vote.getUsername()).getUniqueId();
-			}
-			// Player is not online anywhere, check for last login for given name
-			else {
+			String activeServer = null;
+			if (inst.getProxy().getPlayer(user) == null) {
 				Set<? extends LastLoginPlayer> potentialVoters = LastLogin.getApi().getPlayerByName(user);
 				if (potentialVoters.size() == 0) {
 					BungeeVote.inst().getProxy().getLogger().warning("[FopzlVote] Vote failed due to username never having logged on before: " + user);
@@ -116,9 +117,42 @@ public class BungeeVote extends Plugin implements Listener
 					uuid = potentialVoters.stream().max(comp).get().getPlayerUUID();
 				}
 				
-				// If the player isn't online somewhere, manually update VoteStatsGlobal sql
-				VoteIO.setCooldown(uuid, voteSites.get(site).nickname);
+				// Manually save to sql
 			}
+			else {
+				ProxiedPlayer p = inst.getProxy().getPlayer(user);
+				activeServer = p.getServer().getInfo().getName();
+				uuid = p.getUniqueId();
+			}
+
+			// Check if streak needs to be reset, cache VoteStatsGlobal
+			VoteStatsGlobal stats = VoteInfo.getGlobalStats(uuid);
+			try {
+				Statement insert = BungeeCore.getPluginStatement("FoPzlVote");
+				Statement delete = BungeeCore.getPluginStatement("FoPzlVote");
+				
+				// If streak is lost, update sql on every server EXCEPT the active one (which will handle it on its own)
+				if (stats.isStreakLost()) {
+					String prefix = "INSERT INTO fopzlvote_prevStreaks (SELECT uuid, server, voteStreak, numQueued FROM fopzlvote_voteQueue";
+					String suffix = ");";
+					String connected;
+					if (activeServer != null) {
+						insert.addBatch(prefix + " WHERE server != " + activeServer + suffix;);
+					}
+					else {
+						insert.addBatch(prefix + suffix);
+					}
+					// Delete everything, the active server will re-save anyway
+					delete.addBatch("DELETE FROM fopzlvote_voteQueue WHERE uuid = " + uuid);
+				}
+				VoteIO.setCooldown(insert, uuid, voteSites.get(site).nickname);
+				insert.executeBatch();
+				delete.executeBatch();
+			}
+			catch (SQLException ex) {
+				ex.printStackTrace();
+			}
+			
 			BungeeVoteParty.addPoints(1);
 		}
 	}

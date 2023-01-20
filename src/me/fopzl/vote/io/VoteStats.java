@@ -6,12 +6,12 @@ import java.util.UUID;
 
 import org.bukkit.OfflinePlayer;
 
-public class VoteInfo {
+public class VoteStats {
 	static Map<UUID, VoteStatsGlobal> globalStats;
 	static Map<UUID, VoteStatsLocal> localStats;
 	static Map<UUID, Map<String, Integer>> queuedRewards;
 	
-	public VoteInfo() {
+	public VoteStats() {
 		globalStats = new HashMap<UUID, VoteStatsGlobal>();
 		queuedRewards = new HashMap<UUID, Map<String, Integer>>();
 	}
@@ -24,23 +24,16 @@ public class VoteInfo {
 		localStats.put(uuid, stats);
 	}
 	
-	public static VoteStatsGlobal getGlobalStats(OfflinePlayer p) {
-		UUID uuid = p.getUniqueId();
+	public static VoteStatsGlobal getGlobalStats(UUID uuid) {
 		if(globalStats.containsKey(uuid)) {
 			return globalStats.get(uuid);
 		} else {
-			VoteStatsGlobal vs = VoteIO.loadGlobalStats(p.getUniqueId());
-			if(vs == null) {
-				vs = new VoteStatsGlobal(p.getUniqueId());
-				globalStats.put(uuid, vs);
-			}
-			
-			return vs;
+			// Caches automatically
+			return VoteIO.loadGlobalStats(uuid);
 		}
 	}
 	
-	public static VoteStatsLocal getLocalStats(OfflinePlayer p) {
-		UUID uuid = p.getUniqueId();
+	public static VoteStatsLocal getLocalStats(UUID uuid) {
 		if(localStats.containsKey(uuid)) {
 			return localStats.get(uuid);
 		} else {

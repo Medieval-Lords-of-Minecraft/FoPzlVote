@@ -1,12 +1,18 @@
 package me.fopzl.vote.bungee;
 
 import java.io.File;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -20,10 +26,9 @@ import me.fopzl.vote.SpigotVote;
 import me.fopzl.vote.VoteCooldown;
 import me.fopzl.vote.VoteSiteInfo;
 import me.fopzl.vote.io.VoteIO;
-import me.fopzl.vote.io.VoteInfo;
-import me.fopzl.vote.io.VoteStatsGlobal;
 import me.neoblade298.bungeecore.BungeeCore;
 import me.neoblade298.bungeecore.util.BUtil;
+import me.neoblade298.neocore.util.CachedObject;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -32,6 +37,7 @@ import net.md_5.bungee.event.EventHandler;
 public class BungeeVote extends Plugin implements Listener
 {
 	private static HashMap<String, VoteSiteInfo> voteSites = new HashMap<String, VoteSiteInfo>();
+	private static HashMap<UUID, CachedObject<LocalDateTime>> lastVoted = new HashMap<UUID, CachedObject<LocalDateTime>>();
 	private static BungeeVote inst;
 	
 	private static Comparator<LastLoginPlayer> comp = new Comparator<LastLoginPlayer>() {
@@ -50,11 +56,18 @@ public class BungeeVote extends Plugin implements Listener
 	};
     @Override
     public void onEnable() {
-        // getProxy().getPluginManager().registerCommand(this, new CmdHub());
         getProxy().getPluginManager().registerListener(this, this);
-        getProxy().registerChannel("neocore:bungee");
         new VoteIO(true);
         inst = this;
+        
+        // Scheduler for clearing cache
+        getProxy().getScheduler().schedule(this, () -> {
+        	for (Entry<UUID, CachedObject<LocalDateTime>> ent : lastVoted.entrySet()) {
+        		if (ent.getValue().cachedLongerThan(Duration.of(15, ChronoUnit.MINUTES))) {
+        			lastVoted.remove(ent.getKey());
+        		}
+        	}
+        }, 0, 15, TimeUnit.MINUTES);
         
         reload();
     }
@@ -125,19 +138,27 @@ public class BungeeVote extends Plugin implements Listener
 				uuid = p.getUniqueId();
 			}
 
-			// Check if streak needs to be reset, cache VoteStatsGlobal
-			VoteStatsGlobal stats = VoteInfo.getGlobalStats(uuid);
+			// Check if streak needs to be reset, cache lastVoted
 			try {
 				Statement insert = BungeeCore.getPluginStatement("FoPzlVote");
 				Statement delete = BungeeCore.getPluginStatement("FoPzlVote");
 				
+				// Check if last vote is cached
+				LocalDateTime lastVoted;
+				if (BungeeVote.lastVoted.containsKey(uuid)) {
+					lastVoted = BungeeVote.lastVoted.get(uuid).get();
+				}
+				else {
+					ResultSet rs = insert.executeQuery("SELECT whenLastVoted FROM fopzlvote_playerStats");
+					lastVoted = rs.next() ? rs.getObject(1, LocalDateTime.class) : LocalDateTime.now();
+				}
+				
 				// If streak is lost, update sql on every server EXCEPT the active one (which will handle it on its own)
-				if (stats.isStreakLost()) {
+				if (Duration.between(lastVoted, LocalDateTime.now()).compareTo(Duration.ofDays(2)) > 0) {
 					String prefix = "INSERT INTO fopzlvote_prevStreaks (SELECT uuid, server, voteStreak, numQueued FROM fopzlvote_voteQueue";
 					String suffix = ");";
-					String connected;
 					if (activeServer != null) {
-						insert.addBatch(prefix + " WHERE server != " + activeServer + suffix;);
+						insert.addBatch(prefix + " WHERE server != " + activeServer + suffix);
 					}
 					else {
 						insert.addBatch(prefix + suffix);

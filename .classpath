@@ -8,6 +8,6 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="src/dependencies/nuvotifier.jar"/>
 	<classpathentry kind="lib" path="src/dependencies/spigot-api-1.19.1-R0.1-20220804.104059-10-shaded.jar"/>
-	<classpathentry kind="lib" path="src/dependencies/NeoCore.jar"/>
+	<classpathentry kind="lib" path="src/dependencies/NeoCore-0.0.1-SNAPSHOT.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

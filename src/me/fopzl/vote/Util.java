@@ -2,7 +2,8 @@ package me.fopzl.vote;
 
 import org.bukkit.command.CommandSender;
 
-import me.neoblade298.neocore.bungee.BungeeAPI;
+import me.neoblade298.neocore.bukkit.bungee.BungeeAPI;
+
 
 public class Util {
 	public static void broadcastFormatted(String msg) {

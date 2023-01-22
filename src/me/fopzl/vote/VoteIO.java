@@ -18,10 +18,10 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import me.neoblade298.neocore.NeoCore;
-import me.neoblade298.neocore.io.IOComponent;
-import me.neoblade298.neocore.scheduler.ScheduleInterval;
-import me.neoblade298.neocore.scheduler.SchedulerAPI;
+import me.neoblade298.neocore.bukkit.NeoCore;
+import me.neoblade298.neocore.bukkit.io.IOComponent;
+import me.neoblade298.neocore.bukkit.scheduler.ScheduleInterval;
+import me.neoblade298.neocore.bukkit.scheduler.SchedulerAPI;
 
 public class VoteIO implements IOComponent {
 	Vote main;

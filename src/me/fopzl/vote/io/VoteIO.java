@@ -20,10 +20,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 import me.fopzl.vote.SpigotVote;
 import me.fopzl.vote.bungee.BungeeVote;
 import me.fopzl.vote.bungee.BungeeVoteParty;
-import me.neoblade298.neocore.NeoCore;
-import me.neoblade298.neocore.io.IOComponent;
+import me.neoblade298.neocore.bukkit.NeoCore;
+import me.neoblade298.neocore.bukkit.io.IOComponent;
 import me.neoblade298.neocore.scheduler.ScheduleInterval;
-import me.neoblade298.neocore.scheduler.SchedulerAPI;
+import me.neoblade298.neocore.bukkit.scheduler.SchedulerAPI;
 
 public class VoteIO implements IOComponent {
 	

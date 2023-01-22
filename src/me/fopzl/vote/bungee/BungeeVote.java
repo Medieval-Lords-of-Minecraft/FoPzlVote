@@ -102,7 +102,7 @@ public class BungeeVote extends Plugin implements Listener
 		Vote vote = e.getVote();
 		String site = vote.getServiceName();
 		String user = vote.getUsername();
-		if (SpigotVote.isValidSite(site) || site.equalsIgnoreCase("freevote")) {
+		if (voteSites.containsKey(site) || site.equalsIgnoreCase("freevote")) {
 			if (!user.matches("[a-zA-Z0-9]*")) {
 				BungeeVote.inst().getProxy().getLogger().warning("[FopzlVote] Vote failed due to invalid username: " + user);
 				return;

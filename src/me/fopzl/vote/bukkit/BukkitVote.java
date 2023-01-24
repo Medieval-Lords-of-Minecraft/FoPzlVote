@@ -30,14 +30,14 @@ import me.fopzl.vote.shared.io.VoteStatsGlobal;
 import me.fopzl.vote.shared.io.VoteStatsLocal;
 import me.neoblade298.neocore.bukkit.util.BukkitUtil;
 
-public class SpigotVote extends JavaPlugin implements Listener {
+public class BukkitVote extends JavaPlugin implements Listener {
 
 	private static VoteRewards rewards;
 	private static VoteParty voteParty;
 
 	private static Map<String, VoteSiteInfo> voteSites; // key is servicename, not nickname
 
-	private static SpigotVote instance;
+	private static BukkitVote instance;
 	public static boolean debug = false;
 
 	public void onEnable() {
@@ -88,7 +88,7 @@ public class SpigotVote extends JavaPlugin implements Listener {
 		super.onDisable();
 	}
 
-	public static SpigotVote getInstance() {
+	public static BukkitVote getInstance() {
 		return instance;
 	}
 

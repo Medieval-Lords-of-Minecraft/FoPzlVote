@@ -7,7 +7,7 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 
-import me.fopzl.vote.bukkit.SpigotVote;
+import me.fopzl.vote.bukkit.BukkitVote;
 
 public class VoteStatsGlobal {
 	private boolean canRemove = false;
@@ -38,7 +38,7 @@ public class VoteStatsGlobal {
 	public void addVote(String site) {
 		totalVotes++;
 		
-		if (SpigotVote.debug) {
+		if (BukkitVote.debug) {
 			Bukkit.getLogger().info("[FoPzlVote] Set player total vote to " + totalVotes);
 		}
 		

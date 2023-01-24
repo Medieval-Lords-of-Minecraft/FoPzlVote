@@ -11,13 +11,13 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import me.fopzl.vote.bukkit.SpigotVote;
+import me.fopzl.vote.bukkit.BukkitVote;
 import me.neoblade298.neocore.bukkit.util.BukkitUtil;
 
 public class MLVoteCommand implements CommandExecutor, TabCompleter {
-	private SpigotVote main;
+	private BukkitVote main;
 	
-	public MLVoteCommand(SpigotVote main) {
+	public MLVoteCommand(BukkitVote main) {
 		this.main = main;
 	}
 
@@ -32,7 +32,7 @@ public class MLVoteCommand implements CommandExecutor, TabCompleter {
 				case "reward":
 					if(args.length < 3) return false;
 
-					if(!SpigotVote.giveReward(args[1], args[2])) {
+					if(!BukkitVote.giveReward(args[1], args[2])) {
 						BukkitUtil.msg(sender, "&7Unknown Reward: &e" + args[2]);
 					}
 					return true;
@@ -40,7 +40,7 @@ public class MLVoteCommand implements CommandExecutor, TabCompleter {
 				case "vote":
 					if(args.length < 3) return false;
 					
-					SpigotVote.cmdVote(args[1], args[2]);
+					BukkitVote.cmdVote(args[1], args[2]);
 					return true;
 				case "setvotes":
 					if(args.length < 3) return false;
@@ -51,15 +51,15 @@ public class MLVoteCommand implements CommandExecutor, TabCompleter {
 						BukkitUtil.msg(sender, "&7Player &e" + args[1] + " &7offline.");
 						return true;
 					}
-					SpigotVote.setTotalVotes(onlinePlayer, numVotes);
+					BukkitVote.setTotalVotes(onlinePlayer, numVotes);
 					return true;
 				case "reload":
 					main.loadAllConfigs();
 					BukkitUtil.msg(sender, "&7Reloaded config");
 					return true;
 				case "debug":
-					SpigotVote.debug = !SpigotVote.debug;
-					BukkitUtil.msg(sender, "&7Set debug to " + SpigotVote.debug);
+					BukkitVote.debug = !BukkitVote.debug;
+					BukkitUtil.msg(sender, "&7Set debug to " + BukkitVote.debug);
 					return true;
 			}
 		}
@@ -73,22 +73,22 @@ public class MLVoteCommand implements CommandExecutor, TabCompleter {
 					BukkitUtil.msg(sender, "&7Player &e" + args[1] + " &7offline.");
 					return true;
 				}
-				SpigotVote.showStats(sender, onlinePlayer);
+				BukkitVote.showStats(sender, onlinePlayer);
 			} else {
-				SpigotVote.showStats(sender, (Player)sender);
+				BukkitVote.showStats(sender, (Player)sender);
 			}
 			return true;
 		case "cooldown":
 			if(!(sender instanceof Player)) return false;
 			if(args.length > 1) {
 				OfflinePlayer player = Bukkit.getOfflinePlayer(args[1]);
-				SpigotVote.showCooldowns(sender, player);
+				BukkitVote.showCooldowns(sender, player);
 			} else {
-				SpigotVote.showCooldowns(sender, (Player)sender);
+				BukkitVote.showCooldowns(sender, (Player)sender);
 			}
 			return true;
 		case "leaderboard":
-			SpigotVote.showLeaderboard(sender);
+			BukkitVote.showLeaderboard(sender);
 			return true;
 		}
 		

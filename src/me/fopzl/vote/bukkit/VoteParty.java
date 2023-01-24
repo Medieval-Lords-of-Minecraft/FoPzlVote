@@ -34,14 +34,14 @@ public class VoteParty {
 				@Override
 				public void run() {
 					Bukkit.dispatchCommand(Bukkit.getConsoleSender(), entry.getValue());
-			}}.runTaskLater(SpigotVote.getInstance(), 20 * entry.getKey());
+			}}.runTaskLater(BukkitVote.getInstance(), 20 * entry.getKey());
 		}
 		
 		new BukkitRunnable() {
 			@Override
 			public void run() {
 				startParty();
-		}}.runTaskLater(SpigotVote.getInstance(), 20 * countdownLength);
+		}}.runTaskLater(BukkitVote.getInstance(), 20 * countdownLength);
 	}
 	
 	private static void startParty() {

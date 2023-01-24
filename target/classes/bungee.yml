@@ -1,5 +1,0 @@
-name: FoPzlVote
-main: me.fopzl.vote.bungee.BungeeVote
-author: [Neoblade298, FoPzl]
-depend: [NuVotifier, LastLoginAPI]
-version: 1.0

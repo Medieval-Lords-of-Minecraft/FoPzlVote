@@ -1,4 +1,4 @@
-package me.fopzl.vote;
+package me.fopzl.vote.bukkit;
 
 public class VoteSiteInfo {
 	public String nickname;

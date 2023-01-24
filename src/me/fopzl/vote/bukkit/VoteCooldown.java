@@ -1,4 +1,4 @@
-package me.fopzl.vote;
+package me.fopzl.vote.bukkit;
 
 import java.time.Duration;
 import java.time.Instant;

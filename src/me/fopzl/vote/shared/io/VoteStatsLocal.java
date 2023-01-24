@@ -1,4 +1,4 @@
-package me.fopzl.vote.io;
+package me.fopzl.vote.shared.io;
 
 public class VoteStatsLocal {
 	boolean needToSave;
@@ -13,6 +13,14 @@ public class VoteStatsLocal {
 	
 	public static void setStreakResetTime(long numDays) {
 		streakResetTime = numDays;
+	}
+	
+	public static long getStreakLimit() {
+		return streakLimit;
+	}
+	
+	public static long getStreakResetTime() {
+		return streakResetTime;
 	}
 	
 	public VoteStatsLocal() {

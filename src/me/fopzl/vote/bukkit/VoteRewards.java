@@ -1,4 +1,4 @@
-package me.fopzl.vote;
+package me.fopzl.vote.bukkit;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,7 +14,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
-import me.fopzl.vote.io.VoteStatsLocal;
+import me.fopzl.vote.shared.io.VoteStatsLocal;
 
 public class VoteRewards {
 	private Map<String, Reward> allRewards;

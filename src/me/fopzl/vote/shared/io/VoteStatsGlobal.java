@@ -1,38 +1,34 @@
-package me.fopzl.vote.io;
+package me.fopzl.vote.shared.io;
 
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
 
-import me.fopzl.vote.SpigotVote;
-import me.neoblade298.bungeecore.BungeeCore;
+import me.fopzl.vote.bukkit.SpigotVote;
 
 public class VoteStatsGlobal {
-	boolean canRemove = false;
+	private boolean canRemove = false;
 
 	UUID uuid;
 	int totalVotes; // ever
 	LocalDateTime lastVoted;
-	HashMap<VoteMonth, Map<String, Integer>> monthlySiteCounts; // value is <voteSite, votes this month>
+	private HashMap<VoteMonth, Map<String, Integer>> monthlySiteCounts; // value is <voteSite, votes this month>
 	
 	public VoteStatsGlobal(UUID uuid) {
 		this.uuid = uuid;
 		totalVotes = 0;
 		lastVoted = LocalDateTime.of(0, 1, 1, 0, 0);
-		monthlySiteCounts = new HashMap<VoteMonth, Map<String, Integer>>();
+		setMonthlySiteCounts(new HashMap<VoteMonth, Map<String, Integer>>());
 	}
 	
 	public VoteStatsGlobal(UUID uuid, int totalVotes, int voteStreak, LocalDateTime lastVoted) {
 		this.uuid = uuid;
 		this.totalVotes = totalVotes;
 		this.lastVoted = lastVoted;
-		monthlySiteCounts = new HashMap<VoteMonth, Map<String, Integer>>();
+		setMonthlySiteCounts(new HashMap<VoteMonth, Map<String, Integer>>());
 	}
 	
 	public LocalDateTime getLastVoted() {
@@ -49,11 +45,11 @@ public class VoteStatsGlobal {
 		lastVoted = LocalDateTime.now();
 		
 		VoteMonth now = new VoteMonth(LocalDateTime.now().getYear(), LocalDateTime.now().getMonthValue());
-		Map<String, Integer> currCounts = monthlySiteCounts.getOrDefault(now, new HashMap<String, Integer>());
+		Map<String, Integer> currCounts = getMonthlySiteCounts().getOrDefault(now, new HashMap<String, Integer>());
 		currCounts.put(site, currCounts.getOrDefault(site, 0) + 1);
-		monthlySiteCounts.putIfAbsent(now, currCounts);
+		getMonthlySiteCounts().putIfAbsent(now, currCounts);
 		
-		canRemove = true;
+		setCanRemove(true);
 	}
 	
 	public int getTotalVotes() {
@@ -62,7 +58,7 @@ public class VoteStatsGlobal {
 	
 	public int getVotesThisMonth() {
 		VoteMonth now = new VoteMonth(LocalDateTime.now().getYear(), LocalDateTime.now().getMonthValue());
-		Map<String, Integer> monthVotes = monthlySiteCounts.get(now);
+		Map<String, Integer> monthVotes = getMonthlySiteCounts().get(now);
 		
 		if(monthVotes == null) return 0;
 		
@@ -74,6 +70,7 @@ public class VoteStatsGlobal {
 	}
 	
 	// TODO Might be useless
+	/*
 	public Runnable getSaveRunnable() {
 		return () -> {
 			try {
@@ -108,32 +105,25 @@ public class VoteStatsGlobal {
 			}
 		};
 	}
+	*/
 	
 	public boolean isStreakLost() {
 		return LocalDateTime.now().isAfter(lastVoted.plusDays(2));
 	}
-}
 
-class VoteMonth {
-	int yearNum;
-	int monthNum;
-	
-	public VoteMonth(int y, int m) {
-		yearNum = y;
-		monthNum = m;
+	public boolean canRemove() {
+		return canRemove;
 	}
-	
-	@Override
-	public boolean equals(Object obj) {
-		if(obj == this) return true;
-		if(obj == null || obj.getClass() != this.getClass()) return false;
-		
-		VoteMonth other = (VoteMonth)obj;
-		return other.yearNum == this.yearNum && other.monthNum == this.monthNum;
+
+	public void setCanRemove(boolean canRemove) {
+		this.canRemove = canRemove;
 	}
-	
-	@Override
-	public int hashCode() {
-		return 31 * monthNum + yearNum;
+
+	public HashMap<VoteMonth, Map<String, Integer>> getMonthlySiteCounts() {
+		return monthlySiteCounts;
+	}
+
+	public void setMonthlySiteCounts(HashMap<VoteMonth, Map<String, Integer>> monthlySiteCounts) {
+		this.monthlySiteCounts = monthlySiteCounts;
 	}
 }

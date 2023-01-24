@@ -1,4 +1,4 @@
-package me.fopzl.vote;
+package me.fopzl.vote.bukkit;
 
 import java.io.File;
 import java.time.Duration;
@@ -23,16 +23,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.vexsoftware.votifier.model.Vote;
 import com.vexsoftware.votifier.model.VotifierEvent;
 
-import me.fopzl.vote.bungee.BungeeVote;
-import me.fopzl.vote.commands.MLVoteCommand;
-import me.fopzl.vote.commands.VotePartyCommand;
-import me.fopzl.vote.io.VoteIO;
-import me.fopzl.vote.io.VoteStats;
-import me.fopzl.vote.io.VoteStatsGlobal;
-import me.fopzl.vote.io.VoteStatsLocal;
-import me.neoblade298.bungeecore.util.BUtil;
-import me.neoblade298.neocore.bungee.BungeeAPI;
-import me.neoblade298.neocore.util.Util;
+import me.fopzl.vote.bukkit.commands.MLVoteCommand;
+import me.fopzl.vote.bukkit.io.BukkitVoteIO;
+import me.fopzl.vote.shared.io.VoteStats;
+import me.fopzl.vote.shared.io.VoteStatsGlobal;
+import me.fopzl.vote.shared.io.VoteStatsLocal;
+import me.neoblade298.neocore.bukkit.util.BukkitUtil;
 
 public class SpigotVote extends JavaPlugin implements Listener {
 
@@ -40,8 +36,6 @@ public class SpigotVote extends JavaPlugin implements Listener {
 	private static VoteParty voteParty;
 
 	private static Map<String, VoteSiteInfo> voteSites; // key is servicename, not nickname
-	private static HashMap<UUID, VoteStatsGlobal> globalStats = new HashMap<UUID, VoteStatsGlobal>();
-	private static HashMap<UUID, VoteStatsLocal> localStats = new HashMap<UUID, VoteStatsLocal>();
 
 	private static SpigotVote instance;
 	public static boolean debug = false;
@@ -57,9 +51,6 @@ public class SpigotVote extends JavaPlugin implements Listener {
 		MLVoteCommand mlvoteCmd = new MLVoteCommand(this);
 		this.getCommand("mlvote").setExecutor(mlvoteCmd);
 		this.getCommand("mlvote").setTabCompleter(mlvoteCmd);
-		VotePartyCommand vpCmd = new VotePartyCommand();
-		this.getCommand("voteparty").setExecutor(vpCmd);
-		this.getCommand("voteparty").setTabCompleter(vpCmd);
 
 		loadAllConfigs();
 
@@ -68,7 +59,6 @@ public class SpigotVote extends JavaPlugin implements Listener {
 		Bukkit.getServer().getLogger().info("FoPzlVote Enabled");
 	}
 
-	@SuppressWarnings("deprecation")
 	@EventHandler
 	public static void onVote(final VotifierEvent e) {
 		Vote vote = e.getVote();
@@ -91,7 +81,7 @@ public class SpigotVote extends JavaPlugin implements Listener {
 	}
 
 	public void onDisable() {
-		VoteIO.saveQueue();
+		BukkitVoteIO.saveQueue();
 
 		Bukkit.getServer().getLogger().info("FoPzlVote Disabled");
 		super.onDisable();
@@ -167,7 +157,7 @@ public class SpigotVote extends JavaPlugin implements Listener {
 				+ stats.getTotalVotes() + "\n &eVotes this month: &7" + stats.getVotesThisMonth()
 				+ "\n &eCurrent Streak: &7" + local.getStreak();
 
-		Util.msg(showTo, msg);
+		BukkitUtil.msg(showTo, msg);
 	}
 
 	public static void showCooldowns(CommandSender showTo, OfflinePlayer player) {
@@ -177,11 +167,11 @@ public class SpigotVote extends JavaPlugin implements Listener {
 			msg += "\n &e" + site.getValue().nickname + ": " + cd;
 		}
 
-		Util.msg(showTo, msg);
+		BukkitUtil.msg(showTo, msg);
 	}
 
 	public static void showLeaderboard(CommandSender sender) {
-		List<Object[]> topVoters = VoteIO.getTopVoters(LocalDate.now().getYear(), LocalDate.now().getMonthValue(), 10);
+		List<Object[]> topVoters = BukkitVoteIO.getTopVoters(LocalDate.now().getYear(), LocalDate.now().getMonthValue(), 10);
 		int num = 1;
 		String msg = "&eTop Monthly Voters:";
 		for (Object[] entry : topVoters) {
@@ -189,7 +179,7 @@ public class SpigotVote extends JavaPlugin implements Listener {
 			msg += "\n&6&l" + num++ + ". &e" + username + " &7- &f" + (int) entry[1];
 		}
 
-		Util.msg(sender, msg);
+		BukkitUtil.msg(sender, msg);
 	}
 
 	public static void rewardVote(Player p) {
@@ -207,7 +197,7 @@ public class SpigotVote extends JavaPlugin implements Listener {
 
 	public static String getCooldown(UUID uuid, String voteServiceName) {
 		VoteSiteInfo vsi = voteSites.get(voteServiceName);
-		LocalDateTime lastVoted = globalStats.get(uuid).getLastVoted();
+		LocalDateTime lastVoted = VoteStats.getGlobalStats(uuid).getLastVoted();
 
 		Duration dur = vsi.cooldown.getCooldownRemaining(lastVoted);
 

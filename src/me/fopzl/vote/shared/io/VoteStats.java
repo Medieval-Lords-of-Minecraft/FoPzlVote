@@ -1,15 +1,13 @@
-package me.fopzl.vote.io;
+package me.fopzl.vote.shared.io;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.bukkit.OfflinePlayer;
-
 public class VoteStats {
-	static Map<UUID, VoteStatsGlobal> globalStats;
-	static Map<UUID, VoteStatsLocal> localStats;
-	static Map<UUID, Map<String, Integer>> queuedRewards;
+	public static Map<UUID, VoteStatsGlobal> globalStats;
+	public static Map<UUID, VoteStatsLocal> localStats;
+	public static Map<UUID, Map<String, Integer>> queuedRewards;
 	
 	public VoteStats() {
 		globalStats = new HashMap<UUID, VoteStatsGlobal>();
@@ -29,7 +27,7 @@ public class VoteStats {
 			return globalStats.get(uuid);
 		} else {
 			// Caches automatically
-			return VoteIO.loadGlobalStats(uuid);
+			return SharedVoteIO.loadGlobalStats(uuid);
 		}
 	}
 	

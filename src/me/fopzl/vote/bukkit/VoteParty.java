@@ -1,4 +1,4 @@
-package me.fopzl.vote;
+package me.fopzl.vote.bukkit;
 
 import java.util.HashMap;
 import java.util.List;

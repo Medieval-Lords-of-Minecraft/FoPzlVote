@@ -1,6 +1,7 @@
 package me.fopzl.vote.bungee;
 
 import java.io.File;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -22,13 +23,13 @@ import com.alessiodp.lastloginapi.api.interfaces.LastLoginPlayer;
 import com.vexsoftware.votifier.bungee.events.VotifierEvent;
 import com.vexsoftware.votifier.model.Vote;
 
-import me.fopzl.vote.SpigotVote;
-import me.fopzl.vote.VoteCooldown;
-import me.fopzl.vote.VoteSiteInfo;
-import me.fopzl.vote.io.VoteIO;
-import me.neoblade298.bungeecore.BungeeCore;
-import me.neoblade298.bungeecore.util.BUtil;
-import me.neoblade298.neocore.util.CachedObject;
+import me.fopzl.vote.bukkit.VoteCooldown;
+import me.fopzl.vote.bukkit.VoteSiteInfo;
+import me.fopzl.vote.bukkit.io.BukkitVoteIO;
+import me.fopzl.vote.bungee.io.BungeeVoteIO;
+import me.neoblade298.neocore.bungee.BungeeCore;
+import me.neoblade298.neocore.shared.util.CachedObject;
+import me.neoblade298.neocore.shared.util.SharedUtil;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -57,7 +58,7 @@ public class BungeeVote extends Plugin implements Listener
     @Override
     public void onEnable() {
         getProxy().getPluginManager().registerListener(this, this);
-        new VoteIO(true);
+        BungeeVoteIO.load();
         inst = this;
         
         // Scheduler for clearing cache
@@ -108,7 +109,7 @@ public class BungeeVote extends Plugin implements Listener
 				return;
 			}
 			
-			BUtil.broadcast("&e" + user + " &7just voted on &c" + site + "&7!");
+			SharedUtil.broadcast("&e" + user + " &7just voted on &c" + site + "&7!");
 			
 			// If the player is online, do nothing. Otherwise, manually update VoteStatsGlobal sql
 			UUID uuid;
@@ -139,9 +140,9 @@ public class BungeeVote extends Plugin implements Listener
 			}
 
 			// Check if streak needs to be reset, cache lastVoted
-			try {
-				Statement insert = BungeeCore.getPluginStatement("FoPzlVote");
-				Statement delete = BungeeCore.getPluginStatement("FoPzlVote");
+			try (Connection con = BungeeCore.getConnection("FoPzlVote");
+					Statement insert = con.createStatement();
+					Statement delete = con.createStatement();){
 				
 				// Check if last vote is cached
 				LocalDateTime lastVoted;
@@ -166,7 +167,7 @@ public class BungeeVote extends Plugin implements Listener
 					// Delete everything, the active server will re-save anyway
 					delete.addBatch("DELETE FROM fopzlvote_voteQueue WHERE uuid = " + uuid);
 				}
-				VoteIO.setCooldown(insert, uuid, voteSites.get(site).nickname);
+				BukkitVoteIO.setCooldown(insert, uuid, voteSites.get(site).nickname);
 				insert.executeBatch();
 				delete.executeBatch();
 			}

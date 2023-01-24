@@ -75,7 +75,8 @@ public class SpigotVote extends JavaPlugin implements Listener {
 				rewardVote(p.getPlayer());
 			}
 			else {
-				// Load into cache if not there, update stats
+				VoteStatsGlobal vsg = VoteStats.getGlobalStats(p.getUniqueId());
+				VoteStatsLocal vsl = VoteStats.getLocalStats(p.getUniqueId());
 			}
 		}
 	}

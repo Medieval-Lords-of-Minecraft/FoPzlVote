@@ -111,7 +111,7 @@ public class BungeeVote extends Plugin implements Listener
 			
 			SharedUtil.broadcast("&e" + user + " &7just voted on &c" + site + "&7!");
 			
-			// If the player is online, do nothing. Otherwise, manually update VoteStatsGlobal sql
+			// Find player's UUID and active server (if online)
 			UUID uuid;
 			String activeServer = null;
 			if (inst.getProxy().getPlayer(user) == null) {
@@ -130,8 +130,6 @@ public class BungeeVote extends Plugin implements Listener
 				else {
 					uuid = potentialVoters.stream().max(comp).get().getPlayerUUID();
 				}
-				
-				// Manually save to sql
 			}
 			else {
 				ProxiedPlayer p = inst.getProxy().getPlayer(user);
@@ -164,8 +162,9 @@ public class BungeeVote extends Plugin implements Listener
 					else {
 						insert.addBatch(prefix + suffix);
 					}
-					// Delete everything, the active server will re-save anyway
-					delete.addBatch("DELETE FROM fopzlvote_voteQueue WHERE uuid = " + uuid);
+					// Delete queue on every server except active
+					delete.addBatch("DELETE FROM fopzlvote_voteQueue WHERE uuid = " + uuid
+							+ (activeServer != null ? " AND server != " + activeServer : "") + ";");
 				}
 				BukkitVoteIO.setCooldown(insert, uuid, voteSites.get(site).nickname);
 				insert.executeBatch();

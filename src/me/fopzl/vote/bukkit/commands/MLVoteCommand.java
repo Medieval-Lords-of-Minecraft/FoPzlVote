@@ -12,7 +12,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import me.fopzl.vote.bukkit.BukkitVote;
-import me.neoblade298.neocore.bukkit.util.BukkitUtil;
+import me.neoblade298.neocore.bukkit.util.Util;
 
 public class MLVoteCommand implements CommandExecutor, TabCompleter {
 	private BukkitVote main;
@@ -33,7 +33,7 @@ public class MLVoteCommand implements CommandExecutor, TabCompleter {
 					if(args.length < 3) return false;
 
 					if(!BukkitVote.giveReward(args[1], args[2])) {
-						BukkitUtil.msg(sender, "&7Unknown Reward: &e" + args[2]);
+						Util.msg(sender, "&7Unknown Reward: &e" + args[2]);
 					}
 					return true;
 				// mlvote vote [player] [website]
@@ -48,18 +48,18 @@ public class MLVoteCommand implements CommandExecutor, TabCompleter {
 					Player onlinePlayer = Bukkit.getPlayer(args[1]);
 					int numVotes = Integer.parseInt(args[2]);
 					if(onlinePlayer == null) {
-						BukkitUtil.msg(sender, "&7Player &e" + args[1] + " &7offline.");
+						Util.msg(sender, "&7Player &e" + args[1] + " &7offline.");
 						return true;
 					}
 					BukkitVote.setTotalVotes(onlinePlayer, numVotes);
 					return true;
 				case "reload":
 					main.loadAllConfigs();
-					BukkitUtil.msg(sender, "&7Reloaded config");
+					Util.msg(sender, "&7Reloaded config");
 					return true;
 				case "debug":
 					BukkitVote.debug = !BukkitVote.debug;
-					BukkitUtil.msg(sender, "&7Set debug to " + BukkitVote.debug);
+					Util.msg(sender, "&7Set debug to " + BukkitVote.debug);
 					return true;
 			}
 		}
@@ -70,7 +70,7 @@ public class MLVoteCommand implements CommandExecutor, TabCompleter {
 			if(args.length > 1) {
 				Player onlinePlayer = Bukkit.getPlayer(args[1]);
 				if(onlinePlayer == null) {
-					BukkitUtil.msg(sender, "&7Player &e" + args[1] + " &7offline.");
+					Util.msg(sender, "&7Player &e" + args[1] + " &7offline.");
 					return true;
 				}
 				BukkitVote.showStats(sender, onlinePlayer);

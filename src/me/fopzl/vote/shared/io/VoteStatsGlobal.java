@@ -1,8 +1,11 @@
 package me.fopzl.vote.shared.io;
 
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -10,8 +13,6 @@ import org.bukkit.Bukkit;
 import me.fopzl.vote.bukkit.BukkitVote;
 
 public class VoteStatsGlobal {
-	private boolean canRemove = false;
-
 	UUID uuid;
 	int totalVotes; // ever
 	LocalDateTime lastVoted;
@@ -37,9 +38,10 @@ public class VoteStatsGlobal {
 	
 	public void addVote(String site) {
 		totalVotes++;
+		canRemove = false;
 		
 		if (BukkitVote.debug) {
-			Bukkit.getLogger().info("[FoPzlVote] Set player total vote to " + totalVotes);
+			Bukkit.getLogger().info("[FoPzlVote] Incremented player " + uuid + " total votes to " + totalVotes);
 		}
 		
 		lastVoted = LocalDateTime.now();
@@ -48,8 +50,6 @@ public class VoteStatsGlobal {
 		Map<String, Integer> currCounts = getMonthlySiteCounts().getOrDefault(now, new HashMap<String, Integer>());
 		currCounts.put(site, currCounts.getOrDefault(site, 0) + 1);
 		getMonthlySiteCounts().putIfAbsent(now, currCounts);
-		
-		setCanRemove(true);
 	}
 	
 	public int getTotalVotes() {
@@ -69,54 +69,36 @@ public class VoteStatsGlobal {
 		return sum;
 	}
 	
-	// TODO Might be useless
-	/*
-	public Runnable getSaveRunnable() {
-		return () -> {
-			try {
-				Statement stmt = BungeeCore.getPluginStatement("FoPzlVote");
-				stmt.addBatch("replace into fopzlvote_playerStats values ('" + uuid + "', " + totalVotes  + ", '" + lastVoted.toString() + "');");
-				
-				int year = LocalDateTime.now().getYear();
-				int month = LocalDateTime.now().getMonthValue();
-				VoteMonth now = new VoteMonth(year, month);
-				if(month == 1) {
-					year--;
-					month = 12;
-				}
-				VoteMonth prev = new VoteMonth(year, month);
-				
-				// only save this month and the last
-				Map<String, Integer> currCounts = monthlySiteCounts.get(now);
-				if(currCounts != null) {
-					for(Entry<String, Integer> entry : currCounts.entrySet()) {
-						stmt.addBatch("replace into fopzlvote_playerHist values ('" + uuid + "', " + year + ", " + month + ", '" + entry.getKey() + "', " + entry.getValue() + ");");
-					}
-				}
-				
-				Map<String, Integer> prevCounts = monthlySiteCounts.get(prev);
-				if(prevCounts != null) {
-					for(Entry<String, Integer> entry : prevCounts.entrySet()) {
-						stmt.addBatch("replace into fopzlvote_playerHist values ('" + uuid + "', " + year + ", " + month + ", '" + entry.getKey() + "', " + entry.getValue() + ");");
-					}
-				}
-			} catch (SQLException e) {
-				e.printStackTrace();
+	public void save(Statement insert, Statement delete) {
+		try {
+			insert.addBatch("replace into fopzlvote_playerStats values ('" + uuid + "', " + totalVotes  + ", '" + lastVoted.toString() + "');");
+			
+			int year = LocalDateTime.now().getYear();
+			int month = LocalDateTime.now().getMonthValue();
+			VoteMonth now = new VoteMonth(year, month);
+			if(month == 1) {
+				year--;
+				month = 12;
 			}
-		};
-	}
-	*/
-	
-	public boolean isStreakLost() {
-		return LocalDateTime.now().isAfter(lastVoted.plusDays(2));
-	}
-
-	public boolean canRemove() {
-		return canRemove;
-	}
-
-	public void setCanRemove(boolean canRemove) {
-		this.canRemove = canRemove;
+			VoteMonth prev = new VoteMonth(year, month);
+			
+			// only save this month and the last
+			Map<String, Integer> currCounts = monthlySiteCounts.get(now);
+			if(currCounts != null) {
+				for(Entry<String, Integer> entry : currCounts.entrySet()) {
+					insert.addBatch("replace into fopzlvote_playerHist values ('" + uuid + "', " + year + ", " + month + ", '" + entry.getKey() + "', " + entry.getValue() + ");");
+				}
+			}
+			
+			Map<String, Integer> prevCounts = monthlySiteCounts.get(prev);
+			if(prevCounts != null) {
+				for(Entry<String, Integer> entry : prevCounts.entrySet()) {
+					insert.addBatch("replace into fopzlvote_playerHist values ('" + uuid + "', " + year + ", " + month + ", '" + entry.getKey() + "', " + entry.getValue() + ");");
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public HashMap<VoteMonth, Map<String, Integer>> getMonthlySiteCounts() {

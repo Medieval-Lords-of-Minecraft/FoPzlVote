@@ -4,7 +4,9 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,10 +19,11 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import me.fopzl.vote.bukkit.SpigotVote;
+import me.fopzl.vote.bukkit.BukkitVote;
 import me.fopzl.vote.shared.io.VoteMonth;
 import me.fopzl.vote.shared.io.VoteStats;
 import me.fopzl.vote.shared.io.VoteStatsGlobal;
+import me.fopzl.vote.shared.io.VoteStatsLocal;
 import me.neoblade298.neocore.bukkit.NeoCore;
 import me.neoblade298.neocore.bukkit.io.IOComponent;
 import me.neoblade298.neocore.bukkit.scheduler.ScheduleInterval;
@@ -28,23 +31,28 @@ import me.neoblade298.neocore.bukkit.scheduler.SchedulerAPI;
 
 public class BukkitVoteIO implements IOComponent {
 	
-	public BukkitVoteIO() {
-		NeoCore.registerIOComponent(SpigotVote.getInstance(), this, "FoPzlVoteIO");
-		
-		SchedulerAPI.scheduleRepeating("FoPzlVote-Autosave-Queue", ScheduleInterval.FIFTEEN_MINUTES, new Runnable() {
-			public void run() {
-				new BukkitRunnable() {
-					public void run() {
-						saveQueue();
-					}
-				}.runTaskAsynchronously(SpigotVote.getInstance());
-			}
-		});
-	}
-	
 	@Override
 	public void cleanup(Statement insert, Statement delete) {
 		saveQueue();
+	}
+	
+	@Override
+	public void autosave(Statement insert, Statement delete) {
+		saveQueue();
+		
+		// Remove uuids that aren't online and haven't voted in the past 15-30 minutes
+		ArrayList<UUID> canRemove = new ArrayList<UUID>();
+		for (Entry<UUID, VoteStatsGlobal> e : VoteStats.globalStats.entrySet()) {
+			if (Bukkit.getPlayer(e.getKey()) == null &&
+					Duration.between(e.getValue().getLastVoted(), LocalDateTime.now()).compareTo(Duration.of(15, ChronoUnit.MINUTES)) > 0) {
+				canRemove.add(e.getKey());
+			}
+		}
+		
+		for (UUID uuid : canRemove) {
+			VoteStats.globalStats.remove(uuid).save(insert, delete);;
+			VoteStats.localStats.remove(uuid).save;
+		}
 	}
 
 	@Override
@@ -62,9 +70,9 @@ public class BukkitVoteIO implements IOComponent {
 		UUID uuid = p.getUniqueId();
 		if(!VoteStats.globalStats.containsKey(uuid)) return;
 		
-		VoteStatsGlobal vs = VoteStats.globalStats.get(uuid);
-		if(!vs.canRemove()) return;
-		vs.setCanRemove(false);
+		VoteStatsGlobal vsg = VoteStats.getGlobalStats(uuid);
+		VoteStatsLocal vsl = VoteStats.getLocalStats(uuid);
+		if(vsl.isDirty()) return;
 		
 		try {
 			// insert.addBatch("replace into fopzlvote_playerStats values ('" + uuid + "', " + vs.totalVotes + ", " + vs.voteStreak + ", '" + vs.lastVoted.toString() + "');");

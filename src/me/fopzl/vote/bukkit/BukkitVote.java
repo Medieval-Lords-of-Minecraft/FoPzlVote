@@ -28,7 +28,8 @@ import me.fopzl.vote.bukkit.io.BukkitVoteIO;
 import me.fopzl.vote.shared.io.VoteStats;
 import me.fopzl.vote.shared.io.VoteStatsGlobal;
 import me.fopzl.vote.shared.io.VoteStatsLocal;
-import me.neoblade298.neocore.bukkit.util.BukkitUtil;
+import me.neoblade298.neocore.bukkit.NeoCore;
+import me.neoblade298.neocore.bukkit.util.Util;
 
 public class BukkitVote extends JavaPlugin implements Listener {
 
@@ -52,11 +53,14 @@ public class BukkitVote extends JavaPlugin implements Listener {
 		this.getCommand("mlvote").setExecutor(mlvoteCmd);
 		this.getCommand("mlvote").setTabCompleter(mlvoteCmd);
 
+		NeoCore.registerIOComponent(this, new BukkitVoteIO(), "FoPzlVoteIO");
+
 		loadAllConfigs();
 
 		instance = this;
 
 		Bukkit.getServer().getLogger().info("FoPzlVote Enabled");
+		
 	}
 
 	@EventHandler
@@ -158,7 +162,7 @@ public class BukkitVote extends JavaPlugin implements Listener {
 				+ stats.getTotalVotes() + "\n &eVotes this month: &7" + stats.getVotesThisMonth()
 				+ "\n &eCurrent Streak: &7" + local.getStreak();
 
-		BukkitUtil.msg(showTo, msg);
+		Util.msg(showTo, msg);
 	}
 
 	public static void showCooldowns(CommandSender showTo, OfflinePlayer player) {
@@ -168,7 +172,7 @@ public class BukkitVote extends JavaPlugin implements Listener {
 			msg += "\n &e" + site.getValue().nickname + ": " + cd;
 		}
 
-		BukkitUtil.msg(showTo, msg);
+		Util.msg(showTo, msg);
 	}
 
 	public static void showLeaderboard(CommandSender sender) {
@@ -180,7 +184,7 @@ public class BukkitVote extends JavaPlugin implements Listener {
 			msg += "\n&6&l" + num++ + ". &e" + username + " &7- &f" + (int) entry[1];
 		}
 
-		BukkitUtil.msg(sender, msg);
+		Util.msg(sender, msg);
 	}
 
 	public static void rewardVote(Player p) {

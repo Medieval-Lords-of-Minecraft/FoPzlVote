@@ -1,11 +1,24 @@
 package me.fopzl.vote.shared.io;
 
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.UUID;
+
+import me.neoblade298.neocore.bukkit.NeoCore;
+
+import java.util.Map.Entry;
+
 public class VoteStatsLocal {
-	boolean needToSave;
+	private boolean dirty = false;
 
 	private static long streakLimit; // votes
 	private static long streakResetTime; // days
-	int voteStreak, votesQueued, votesQueuedNoStreak; // current
+	private UUID uuid;
+	private int voteStreak = 0, votesQueued = 0; // current
+	private ArrayList<OldVoteStreak> oldVoteStreaks; // Unrewarded previous vote streaks
 	
 	public static void setStreakLimit(long numVotes) {
 		streakLimit = numVotes;
@@ -23,31 +36,37 @@ public class VoteStatsLocal {
 		return streakResetTime;
 	}
 	
-	public VoteStatsLocal() {
-		needToSave = true;
-		
-		voteStreak = 0;
-		votesQueued = 0;
-		votesQueuedNoStreak = 0;
+	public VoteStatsLocal(UUID uuid) {
+		this.uuid = uuid;
 	}
 	
-	public VoteStatsLocal(int totalVotes, int voteStreak, int votesQueued, int votesQueuedNoStreak) {
-		needToSave = false;
-		
+	public VoteStatsLocal(UUID uuid, int voteStreak, int votesQueued) {
+		this.uuid = uuid;
 		this.voteStreak = voteStreak;
 		this.votesQueued = votesQueued;
-		this.votesQueuedNoStreak = votesQueuedNoStreak;
 	}
 	
-	public void addVote(String site) {
-		needToSave = true;
+	public void addVote() {
+		
 	}
 	
 	public int getStreak() {
 		return voteStreak;
 	}
 	
-	public int getVotesQueued(boolean countsTowardsStreak) {
-		return countsTowardsStreak ? votesQueued : votesQueuedNoStreak;
+	public ArrayList<OldVoteStreak> getOldVoteStreaks() {
+		return oldVoteStreaks;
+	}
+	
+	public boolean isDirty() {
+		return dirty;
+	}
+	
+	public void save(Statement insert, Statement delete) {
+		try {
+			insert.addBatch("replace into fopzlvote_playerStats values ('" + uuid + "','" + NeoCore.getInstanceKey() + "'," + voteStreak  + "," + votesQueued + ");");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 }

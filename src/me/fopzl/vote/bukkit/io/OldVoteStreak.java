@@ -1,4 +1,4 @@
-package me.fopzl.vote.shared.io;
+package me.fopzl.vote.bukkit.io;
 
 public class OldVoteStreak {
 	private int voteStreak;

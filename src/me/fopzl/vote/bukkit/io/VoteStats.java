@@ -1,4 +1,4 @@
-package me.fopzl.vote.shared.io;
+package me.fopzl.vote.bukkit.io;
 
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -12,20 +12,25 @@ import org.bukkit.Bukkit;
 
 import me.fopzl.vote.bukkit.BukkitVote;
 
-public class VoteStatsGlobal {
-	UUID uuid;
-	int totalVotes; // ever
-	LocalDateTime lastVoted;
-	private HashMap<VoteMonth, Map<String, Integer>> monthlySiteCounts; // value is <voteSite, votes this month>
+public class VoteStats {
+	private static int streakLimit = 0;
+	private static int streakResetTime = 0; // In days
 	
-	public VoteStatsGlobal(UUID uuid) {
+	private UUID uuid;
+	private int totalVotes; // ever
+	private int voteStreak = 0, votesQueued = 0;
+	private LocalDateTime lastVoted;
+	private HashMap<VoteMonth, Map<String, Integer>> monthlySiteCounts; // value is <voteSite, votes this month>
+	private boolean dirty;
+	
+	public VoteStats(UUID uuid) {
 		this.uuid = uuid;
 		totalVotes = 0;
 		lastVoted = LocalDateTime.of(0, 1, 1, 0, 0);
 		setMonthlySiteCounts(new HashMap<VoteMonth, Map<String, Integer>>());
 	}
 	
-	public VoteStatsGlobal(UUID uuid, int totalVotes, int voteStreak, LocalDateTime lastVoted) {
+	public VoteStats(UUID uuid, int totalVotes, int voteStreak, LocalDateTime lastVoted) {
 		this.uuid = uuid;
 		this.totalVotes = totalVotes;
 		this.lastVoted = lastVoted;
@@ -38,7 +43,6 @@ public class VoteStatsGlobal {
 	
 	public void addVote(String site) {
 		totalVotes++;
-		canRemove = false;
 		
 		if (BukkitVote.debug) {
 			Bukkit.getLogger().info("[FoPzlVote] Incremented player " + uuid + " total votes to " + totalVotes);
@@ -107,5 +111,45 @@ public class VoteStatsGlobal {
 
 	public void setMonthlySiteCounts(HashMap<VoteMonth, Map<String, Integer>> monthlySiteCounts) {
 		this.monthlySiteCounts = monthlySiteCounts;
+	}
+
+	public boolean isDirty() {
+		return dirty;
+	}
+
+	public void setDirty(boolean dirty) {
+		this.dirty = dirty;
+	}
+
+	public int getStreak() {
+		return voteStreak;
+	}
+
+	public void setStreak(int streak) {
+		this.voteStreak = streak;
+	}
+
+	public int getVotesQueued() {
+		return votesQueued;
+	}
+
+	public void setVotesQueued(int votesQueued) {
+		this.votesQueued = votesQueued;
+	}
+
+	public static int getStreakLimit() {
+		return streakLimit;
+	}
+
+	public static void setStreakLimit(int streakLimit) {
+		VoteStats.streakLimit = streakLimit;
+	}
+
+	public static int getStreakResetTime() {
+		return streakResetTime;
+	}
+
+	public static void setStreakResetTime(int streakResetTime) {
+		VoteStats.streakResetTime = streakResetTime;
 	}
 }

@@ -37,24 +37,9 @@ import net.md_5.bungee.event.EventHandler;
 
 public class BungeeVote extends Plugin implements Listener
 {
-	private static HashMap<String, VoteSiteInfo> voteSites = new HashMap<String, VoteSiteInfo>();
 	private static HashMap<UUID, CachedObject<LocalDateTime>> lastVoted = new HashMap<UUID, CachedObject<LocalDateTime>>();
 	private static BungeeVote inst;
 	
-	private static Comparator<LastLoginPlayer> comp = new Comparator<LastLoginPlayer>() {
-		@Override
-		public int compare(LastLoginPlayer p1, LastLoginPlayer p2) {
-			if (p1.getLastLogout() > p2.getLastLogout()) {
-				return 1;
-			}
-			else if (p1.getLastLogout() < p2.getLastLogout()) {
-				return -1;
-			}
-			else {
-				return 0;
-			}
-		}
-	};
     @Override
     public void onEnable() {
         getProxy().getPluginManager().registerListener(this, this);

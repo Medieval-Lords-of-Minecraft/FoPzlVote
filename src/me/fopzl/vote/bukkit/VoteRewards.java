@@ -14,7 +14,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
-import me.fopzl.vote.shared.io.VoteStatsLocal;
+import me.fopzl.vote.bukkit.io.VoteStats;
 
 public class VoteRewards {
 	private Map<String, Reward> allRewards;
@@ -90,7 +90,7 @@ public class VoteRewards {
 	}
 	
 	// streak is in votes, not days
-	public void rewardVote(Player p, VoteStatsLocal stats) {
+	public void rewardVote(Player p, VoteStats stats) {
 		dailyReward.giveReward(p);
 		int streak = stats.getStreak();
 		

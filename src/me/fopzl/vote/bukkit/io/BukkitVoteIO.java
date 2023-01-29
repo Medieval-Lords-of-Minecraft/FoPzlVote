@@ -21,28 +21,24 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import me.fopzl.vote.bukkit.BukkitVote;
 import me.fopzl.vote.shared.io.VoteMonth;
-import me.fopzl.vote.shared.io.VoteStats;
-import me.fopzl.vote.shared.io.VoteStatsGlobal;
-import me.fopzl.vote.shared.io.VoteStatsLocal;
 import me.neoblade298.neocore.bukkit.NeoCore;
 import me.neoblade298.neocore.bukkit.io.IOComponent;
-import me.neoblade298.neocore.bukkit.scheduler.ScheduleInterval;
-import me.neoblade298.neocore.bukkit.scheduler.SchedulerAPI;
 
 public class BukkitVoteIO implements IOComponent {
+	public static HashMap<UUID, VoteStats> stats = new HashMap<UUID, VoteStats>();
 	
 	@Override
 	public void cleanup(Statement insert, Statement delete) {
-		saveQueue();
+		// saveQueue();
 	}
 	
 	@Override
 	public void autosave(Statement insert, Statement delete) {
-		saveQueue();
+		// saveQueue();
 		
 		// Remove uuids that aren't online and haven't voted in the past 15-30 minutes
 		ArrayList<UUID> canRemove = new ArrayList<UUID>();
-		for (Entry<UUID, VoteStatsGlobal> e : VoteStats.globalStats.entrySet()) {
+		for (Entry<UUID, VoteStats> e : stats.entrySet()) {
 			if (Bukkit.getPlayer(e.getKey()) == null &&
 					Duration.between(e.getValue().getLastVoted(), LocalDateTime.now()).compareTo(Duration.of(15, ChronoUnit.MINUTES)) > 0) {
 				canRemove.add(e.getKey());
@@ -50,8 +46,7 @@ public class BukkitVoteIO implements IOComponent {
 		}
 		
 		for (UUID uuid : canRemove) {
-			VoteStats.globalStats.remove(uuid).save(insert, delete);;
-			VoteStats.localStats.remove(uuid).save;
+			stats.remove(uuid).save(insert, delete);
 		}
 	}
 
@@ -61,18 +56,16 @@ public class BukkitVoteIO implements IOComponent {
 	@Override
 	public void savePlayer(Player p, Statement insert, Statement delete) {
 		autosavePlayer(p, insert, delete);
-		VoteStats.globalStats.remove(p.getUniqueId());
-		VoteStats.localStats.remove(p.getUniqueId());
+		stats.remove(p.getUniqueId());
 	}
 	
 	@Override
 	public void autosavePlayer(Player p, Statement insert, Statement delete) {
 		UUID uuid = p.getUniqueId();
-		if(!VoteStats.globalStats.containsKey(uuid)) return;
+		if(!stats.containsKey(uuid)) return;
 		
-		VoteStatsGlobal vsg = VoteStats.getGlobalStats(uuid);
-		VoteStatsLocal vsl = VoteStats.getLocalStats(uuid);
-		if(vsl.isDirty()) return;
+		VoteStats vs = stats.get(uuid);
+		if(!vs.isDirty()) return;
 		
 		try {
 			// insert.addBatch("replace into fopzlvote_playerStats values ('" + uuid + "', " + vs.totalVotes + ", " + vs.voteStreak + ", '" + vs.lastVoted.toString() + "');");
@@ -114,7 +107,7 @@ public class BukkitVoteIO implements IOComponent {
 			ResultSet rs = stmt.executeQuery("select * from fopzlvote_playerStats where uuid = '" + uuid + "';");
 			if(!rs.next()) return;
 			
-			VoteStatsGlobal vs = new VoteStatsGlobal(uuid, rs.getInt("totalVotes"), rs.getInt("voteStreak"), rs.getObject("whenLastVoted", LocalDateTime.class));
+			VoteStats vs = new VoteStats(uuid, rs.getInt("totalVotes"), rs.getInt("voteStreak"), rs.getObject("whenLastVoted", LocalDateTime.class));
 			
 			rs = stmt.executeQuery("select * from fopzlvote_playerHist where uuid = '" + uuid + "';");
 			while(rs.next()) {
@@ -127,12 +120,14 @@ public class BukkitVoteIO implements IOComponent {
 				vs.getMonthlySiteCounts().putIfAbsent(voteMonth, monthCounts);
 			}
 			
-			VoteStats.globalStats.put(uuid, vs);
+			stats.put(uuid, vs);
 		} catch (SQLException e) {
 			Bukkit.getLogger().warning("Failed to load vote data for player " + p.getName());
 			e.printStackTrace();
 		}
 		
+		// TODO
+		/*
 		new BukkitRunnable() {
 			@Override
 			public void run() {
@@ -144,12 +139,14 @@ public class BukkitVoteIO implements IOComponent {
 						// Calculate how many offline votes there was to properly reward the streaks
 						sum += entry.getValue();
 					}
-					SpigotVote.rewardVoteQueued(p, sum);
+					BukkitVote.rewardVoteQueued(p, sum);
 				}
 			}
-		}.runTask(SpigotVote.getInstance());
+		}.runTask(BukkitVote.getInstance());*/
 	}
 	
+	// TODO
+	/*
 	public static void saveQueue() {
 		try (Connection con = NeoCore.getConnection("FoPzlVoteIO")) {
 			try (Statement stmt = con.createStatement()) {
@@ -181,6 +178,7 @@ public class BukkitVoteIO implements IOComponent {
 			e1.printStackTrace();
 		}
 	}
+	*/
 	
 	// month is 1-indexed
 	// returned list items are indexed as: [0] - uuid (as UUID), [1] = # of votes (as int)
@@ -237,5 +235,40 @@ public class BukkitVoteIO implements IOComponent {
 		}
 		
 		return LocalDateTime.of(0, 1, 1, 0, 0);
+	}
+
+	private static VoteStats loadGlobalStats(UUID uuid) {
+		try (Connection con = NeoCore.getConnection("FoPzlVoteIO");
+				Statement stmt = con.createStatement();) {
+			ResultSet rs = stmt.executeQuery("select * from fopzlvote_playerStats where uuid = '" + uuid + "';");
+			if(!rs.next()) {
+				VoteStats stats = new VoteStats(uuid);
+				return stats;
+			}
+			
+			VoteStats vs = new VoteStats(uuid, rs.getInt("totalVotes"), rs.getInt("voteStreak"), rs.getObject("whenLastVoted", LocalDateTime.class));
+			
+			rs = stmt.executeQuery("select * from fopzlvote_playerHist where uuid = '" + uuid + "';");
+			while(rs.next()) {
+				VoteMonth voteMonth = new VoteMonth(rs.getInt("year"), rs.getInt("month"));
+				String voteSite = rs.getString("voteSite");
+				int numVotes = rs.getInt("numVotes");
+				
+				Map<String, Integer> monthCounts = vs.getMonthlySiteCounts().getOrDefault(voteMonth, new HashMap<String, Integer>());
+				monthCounts.put(voteSite, numVotes);
+				vs.getMonthlySiteCounts().putIfAbsent(voteMonth, monthCounts);
+			}
+			
+			stats.put(uuid, vs);
+			
+			return vs;
+		} catch (SQLException e) {
+			Bukkit.getLogger().warning("Failed to load vote data for uuid " + uuid);
+			e.printStackTrace();
+		}
+
+		VoteStats vs = new VoteStats(uuid);
+		stats.put(uuid, vs);
+		return vs;
 	}
 }

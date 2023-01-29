@@ -8,7 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 
 import me.neoblade298.neocore.bungee.BungeeCore;
-import me.neoblade298.neocore.bungee.util.BungeeUtil;
+import me.neoblade298.neocore.bungee.util.Util;
 import net.md_5.bungee.api.CommandSender;
 
 public class BungeeVoteParty {
@@ -35,7 +35,7 @@ public class BungeeVoteParty {
 	}
 	
 	public static void showStatus(CommandSender s) {
-		BungeeUtil.msg(s, "&e" + points + " / " + pointsToStart + " &7votes for a vote party to commence!");
+		Util.msg(s, "&e" + points + " / " + pointsToStart + " &7votes for a vote party to commence!");
 	}
 	
 	public static void addPoints(int pts) {

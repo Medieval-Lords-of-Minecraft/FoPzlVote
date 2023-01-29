@@ -25,9 +25,8 @@ import com.vexsoftware.votifier.model.VotifierEvent;
 
 import me.fopzl.vote.bukkit.commands.MLVoteCommand;
 import me.fopzl.vote.bukkit.io.BukkitVoteIO;
-import me.fopzl.vote.shared.io.VoteStats;
-import me.fopzl.vote.shared.io.VoteStatsGlobal;
-import me.fopzl.vote.shared.io.VoteStatsLocal;
+import me.fopzl.vote.bukkit.io.VoteStats;
+import me.fopzl.vote.shared.VoteUtil;
 import me.neoblade298.neocore.bukkit.NeoCore;
 import me.neoblade298.neocore.bukkit.util.Util;
 
@@ -68,6 +67,10 @@ public class BukkitVote extends JavaPlugin implements Listener {
 		Vote vote = e.getVote();
 		String site = vote.getServiceName();
 		String user = vote.getUsername();
+		UUID uuid = VoteUtil.checkVote(user, site);
+		if (uuid != null) {
+			
+		}
 		if (voteSites.containsKey(site) || site.equalsIgnoreCase("freevote")) {
 			if (!user.matches("[a-zA-Z0-9]*")) {
 				Bukkit.getLogger().warning("[FopzlVote] Vote failed due to invalid username: " + user);
@@ -79,14 +82,14 @@ public class BukkitVote extends JavaPlugin implements Listener {
 				rewardVote(p.getPlayer());
 			}
 			else {
-				VoteStatsGlobal vsg = VoteStats.getGlobalStats(p.getUniqueId());
-				VoteStatsLocal vsl = VoteStats.getLocalStats(p.getUniqueId());
+				VoteStats vsg = BukkitVoteIO.stats.get(p.getUniqueId());
+				vsg.addVote(site);
 			}
 		}
 	}
 
 	public void onDisable() {
-		BukkitVoteIO.saveQueue();
+		// TODO BukkitVoteIO.saveQueue();
 
 		Bukkit.getServer().getLogger().info("FoPzlVote Disabled");
 		super.onDisable();
@@ -135,8 +138,8 @@ public class BukkitVote extends JavaPlugin implements Listener {
 			voteSites.put(vsi.serviceName, vsi);
 		}
 
-		VoteStatsLocal.setStreakLimit(cfg.getInt("streak-vote-limit"));
-		VoteStatsLocal.setStreakResetTime(cfg.getInt("streak-reset-leniency"));
+		VoteStats.setStreakLimit(cfg.getInt("streak-vote-limit"));
+		VoteStats.setStreakResetTime(cfg.getInt("streak-reset-leniency"));
 	}
 
 	public static VoteParty getVoteParty() {
@@ -155,12 +158,11 @@ public class BukkitVote extends JavaPlugin implements Listener {
 	}
 
 	public static void showStats(CommandSender showTo, Player player) {
-		VoteStatsGlobal stats = VoteStats.getGlobalStats(player.getUniqueId());
-		VoteStatsLocal local = VoteStats.getLocalStats(player.getUniqueId());
+		VoteStats stats = BukkitVoteIO.stats.get(player.getUniqueId());
 
 		String msg = "&eVote Stats for &6" + player.getName() + "&e:" + "\n &eAll time votes: &7"
 				+ stats.getTotalVotes() + "\n &eVotes this month: &7" + stats.getVotesThisMonth()
-				+ "\n &eCurrent Streak: &7" + local.getStreak();
+				+ "\n &eCurrent Streak: &7";// + stats.getStreak(); TODO
 
 		Util.msg(showTo, msg);
 	}
@@ -188,8 +190,9 @@ public class BukkitVote extends JavaPlugin implements Listener {
 	}
 
 	public static void rewardVote(Player p) {
-		VoteStatsLocal stats = VoteStats.getLocalStats(p.getUniqueId());
-		rewards.rewardVote(p, stats);
+		// TODO
+		// VoteStatsGlobal stats = VoteStats.getLocalStats(p.getUniqueId());
+		// rewards.rewardVote(p, stats);
 	}
 
 	public static void rewardVoteQueued(Player p, int queuedVotes) {
@@ -202,7 +205,7 @@ public class BukkitVote extends JavaPlugin implements Listener {
 
 	public static String getCooldown(UUID uuid, String voteServiceName) {
 		VoteSiteInfo vsi = voteSites.get(voteServiceName);
-		LocalDateTime lastVoted = VoteStats.getGlobalStats(uuid).getLastVoted();
+		LocalDateTime lastVoted = BukkitVoteIO.stats.get(uuid).getLastVoted();
 
 		Duration dur = vsi.cooldown.getCooldownRemaining(lastVoted);
 

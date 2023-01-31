@@ -24,12 +24,15 @@ import org.bukkit.scheduler.BukkitRunnable;
 import com.vexsoftware.votifier.model.Vote;
 import com.vexsoftware.votifier.model.VotifierEvent;
 
-import me.fopzl.vote.bukkit.commands.MLVoteCommand;
+import me.fopzl.vote.bukkit.commands.*;
 import me.fopzl.vote.bukkit.io.BukkitVoteIO;
 import me.fopzl.vote.bukkit.io.VoteStats;
 import me.fopzl.vote.shared.VoteUtil;
 import me.neoblade298.neocore.bukkit.NeoCore;
+import me.neoblade298.neocore.bukkit.commands.SubcommandManager;
 import me.neoblade298.neocore.bukkit.util.Util;
+import me.neoblade298.neocore.shared.commands.SubcommandRunner;
+import net.md_5.bungee.api.ChatColor;
 
 public class BukkitVote extends JavaPlugin implements Listener {
 
@@ -58,9 +61,19 @@ public class BukkitVote extends JavaPlugin implements Listener {
 		loadAllConfigs();
 
 		instance = this;
+		
+		initCommands();
 
 		Bukkit.getServer().getLogger().info("FoPzlVote Enabled");
-		
+	}
+	
+	private void initCommands() {
+		SubcommandManager mngr = new SubcommandManager("vote", null, ChatColor.RED, this);
+		mngr.register(new CmdVote("", "Use to vote!", null, SubcommandRunner.PLAYER_ONLY));
+		mngr.registerCommandList("help");
+		mngr.register(new CmdVoteCooldown("cooldown", "Shows vote site cooldowns", null, SubcommandRunner.BOTH));
+		mngr.register(new CmdVoteLeaderboard("leaderboard", "Shows top voters of the month", null, SubcommandRunner.BOTH));
+		mngr.register(new CmdVoteStats("stats", "Shows vote stats", null, SubcommandRunner.BOTH));
 	}
 
 	@EventHandler
@@ -154,71 +167,9 @@ public class BukkitVote extends JavaPlugin implements Listener {
 		 * com.vexsoftware.votifier.model.Vote(o)));
 		 */
 	}
-
-	public static void showStats(CommandSender showTo, Player player) {
-		VoteStats stats = BukkitVoteIO.stats.get(player.getUniqueId());
-
-		String msg = "&eVote Stats for &6" + player.getName() + "&e:" + "\n &eAll time votes: &7"
-				+ stats.getTotalVotes() + "\n &eVotes this month: &7" + stats.getVotesThisMonth()
-				+ "\n &eCurrent Streak: &7";// + stats.getStreak(); TODO
-
-		Util.msg(showTo, msg);
-	}
-
-	public static void showCooldowns(CommandSender showTo, OfflinePlayer player) {
-		String msg = "&eVote Site Cooldowns for &6" + player.getName() + "&e:";
-		for (Entry<String, VoteSiteInfo> site : voteSites.entrySet()) {
-			String cd = getCooldown(player.getUniqueId(), site.getKey());
-			msg += "\n &e" + site.getValue().nickname + ": " + cd;
-		}
-
-		Util.msg(showTo, msg);
-	}
-
-	public static void showLeaderboard(CommandSender sender) {
-		List<Object[]> topVoters = BukkitVoteIO.getTopVoters(LocalDate.now().getYear(), LocalDate.now().getMonthValue(), 10);
-		int num = 1;
-		String msg = "&eTop Monthly Voters:";
-		for (Object[] entry : topVoters) {
-			String username = Bukkit.getServer().getOfflinePlayer((UUID) entry[0]).getName();
-			msg += "\n&6&l" + num++ + ". &e" + username + " &7- &f" + (int) entry[1];
-		}
-
-		Util.msg(sender, msg);
-	}
-
-	public static void rewardVote(Player p) {
-		// TODO
-		// VoteStatsGlobal stats = VoteStats.getLocalStats(p.getUniqueId());
-		// rewards.rewardVote(p, stats);
-	}
-
-	public static void rewardVoteQueued(Player p, int queuedVotes) {
-		/*
-		 * VoteStatsGlobal stats = VoteInfo.getGlobalStats(p); for (int i =
-		 * stats.voteStreak - queuedVotes + 1; i <= stats.voteStreak; i++) {
-		 * rewards.rewardVote(p, i); }
-		 */
-	}
-
-	public static String getCooldown(UUID uuid, String voteServiceName) {
-		VoteSiteInfo vsi = voteSites.get(voteServiceName);
-		LocalDateTime lastVoted = BukkitVoteIO.stats.get(uuid).getLastVoted();
-
-		Duration dur = vsi.cooldown.getCooldownRemaining(lastVoted);
-
-		if (dur.isNegative())
-			return "&aReady!";
-		else
-			return String.format("&c%02d:%02d:%02d", dur.toHours(), dur.toMinutesPart(), dur.toSecondsPart());
-	}
-
-	public static void setTotalVotes(Player p, int numVotes) {
-		/*
-		 * VoteInfo.getGlobalStats(p).totalVotes = numVotes;
-		 * VoteInfo.getGlobalStats(p).needToSave = true;
-		 */
-		// TODO
+	
+	public static Map<String, VoteSiteInfo> getSites() {
+		return voteSites;
 	}
 
 	public static boolean giveReward(String username, String rewardName) {

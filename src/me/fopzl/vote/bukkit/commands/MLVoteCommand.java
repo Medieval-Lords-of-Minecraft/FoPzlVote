@@ -64,55 +64,5 @@ public class MLVoteCommand implements CommandExecutor, TabCompleter {
 			}
 		}
 		
-		switch(args[0]) {
-		case "stats":
-			if(!(sender instanceof Player)) return false;
-			if(args.length > 1) {
-				Player onlinePlayer = Bukkit.getPlayer(args[1]);
-				if(onlinePlayer == null) {
-					Util.msg(sender, "&7Player &e" + args[1] + " &7offline.");
-					return true;
-				}
-				BukkitVote.showStats(sender, onlinePlayer);
-			} else {
-				BukkitVote.showStats(sender, (Player)sender);
-			}
-			return true;
-		case "cooldown":
-			if(!(sender instanceof Player)) return false;
-			if(args.length > 1) {
-				OfflinePlayer player = Bukkit.getOfflinePlayer(args[1]);
-				BukkitVote.showCooldowns(sender, player);
-			} else {
-				BukkitVote.showCooldowns(sender, (Player)sender);
-			}
-			return true;
-		case "leaderboard":
-			BukkitVote.showLeaderboard(sender);
-			return true;
-		}
-		
-		return false;
 	}
-
-	@Override
-	public List<String> onTabComplete(CommandSender sender, Command cmd, String lbl, String[] args) {
-		if(args.length == 1) {
-			List<String> options = new ArrayList<String>();
-			options.add("stats");
-			options.add("cooldown");
-			options.add("leaderboard");
-			if(sender.hasPermission("mlvote.admin")) {
-				options.add("reward");
-				options.add("vote");
-				options.add("setvotes");
-				options.add("reload");
-				options.add("debug");
-			}
-			return options;
-		} else return null;
-	}
-	
-	
-
 }

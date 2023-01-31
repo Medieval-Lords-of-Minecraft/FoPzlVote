@@ -109,8 +109,7 @@ public class VoteRewards {
 		dailyReward = allRewards.get(cfg.getString("daily"));
 	}
 	
-	// streak is in votes, not days
-	public static void rewardVote(Player p, int streak, int queued) {
+	public static void rewardVotes(Player p, int streak, int queued) {
 		for (int i = streak; i < streak + queued; i++) {
 			dailyReward.giveReward(p);
 			

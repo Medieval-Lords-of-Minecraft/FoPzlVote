@@ -34,7 +34,10 @@ public class BukkitVoteIO implements IOComponent {
 		// Remove uuids that aren't online and haven't voted in the past 15-30 minutes
 		ArrayList<UUID> canRemove = new ArrayList<UUID>();
 		for (Entry<UUID, VoteStats> e : stats.entrySet()) {
-			if (e.getValue().isDirty()) e.getValue().save(insert, delete);
+			if (e.getValue().isDirty()) {
+				e.getValue().setDirty(false);
+				e.getValue().save(insert, delete);
+			}
 			
 			if (Bukkit.getPlayer(e.getKey()) == null &&
 					Duration.between(e.getValue().getLastVoted(), LocalDateTime.now()).compareTo(Duration.of(15, ChronoUnit.MINUTES)) > 0) {
@@ -67,10 +70,12 @@ public class BukkitVoteIO implements IOComponent {
 	public void loadPlayer(Player p, Statement stmt) {
 		UUID uuid = p.getUniqueId();
 		loadPlayer(uuid, stmt);
+		
+		// 5 seconds after loading in, handle queued votes
 		new BukkitRunnable() {
 			public void run() {
 				if (stats.containsKey(uuid)) {
-					stats.get(uuid).
+					stats.get(uuid).handleQueuedVotes();
 				}
 			}
 		}.runTaskLater(BukkitVote.getInstance(), 100L);
@@ -151,19 +156,6 @@ public class BukkitVoteIO implements IOComponent {
 		return topVoters;
 	}
 	
-	public static void setCooldown(Statement stmt, UUID uuid, String voteSite) {
-		try {
-			String whenLastVoted = LocalDateTime.now().toString();
-			
-			stmt.execute("replace into fopzlvote_siteCooldowns values ('" + uuid + "', '" + voteSite + "', '" + whenLastVoted + "');");
-			
-			stmt.close();
-		} catch (SQLException e) {
-			Bukkit.getLogger().warning("Failed to save voteSite cooldown");
-			e.printStackTrace();
-		}
-	}
-	
 	public static LocalDateTime getCooldown(OfflinePlayer player, String voteSite) {
 		try (Connection con = NeoCore.getConnection("FoPzlVoteIO");
 				Statement stmt = con.createStatement();) {
@@ -175,6 +167,7 @@ public class BukkitVoteIO implements IOComponent {
 				return rs.getTimestamp("whenLastVoted").toLocalDateTime();
 			}
 			
+			rs.close();
 			stmt.close();
 		} catch (SQLException e) {
 			Bukkit.getLogger().warning("Failed to load voteSite cooldown");

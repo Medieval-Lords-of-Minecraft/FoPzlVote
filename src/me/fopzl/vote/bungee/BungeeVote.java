@@ -80,9 +80,11 @@ public class BungeeVote extends Plugin implements Listener
 					Statement stmt = con.createStatement()) {
 				int year = LocalDateTime.now().getYear();
 				int month = LocalDateTime.now().getMonthValue();
+				String whenLastVoted = LocalDateTime.now().toString();
 				stmt.addBatch("update fopzlvote_playerstats set totalVotes = totalVotes + 1 where uuid = '" + uuid + "';");
 				stmt.addBatch("update fopzlvote_playerstats set whenLastVoted = '" + LocalDateTime.now().toString() + "' where uuid = '" + uuid + "';");
 				stmt.addBatch("update fopzlvote_playerHist set numVotes = numVotes + 1 where uuid = '" + uuid + "' and year = " + year + " and month = " + month + ";");
+				stmt.execute("replace into fopzlvote_siteCooldowns values ('" + uuid + "', '" + site + "', '" + whenLastVoted + "');");
 				stmt.executeBatch();
 			}
 			catch (SQLException ex) {

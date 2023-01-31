@@ -1,5 +1,6 @@
 package me.fopzl.vote.bukkit.io;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Duration;
@@ -11,8 +12,11 @@ import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import me.fopzl.vote.bukkit.BukkitVote;
+import me.fopzl.vote.bukkit.VoteRewards;
 import me.neoblade298.neocore.bukkit.NeoCore;
 
 public class VoteStats {
@@ -46,6 +50,31 @@ public class VoteStats {
 		return lastVoted;
 	}
 	
+	public void handleQueuedVotes() {
+		Player p = Bukkit.getPlayer(uuid);
+		if (p == null) return;
+		
+		for (OldVoteStreak old : oldStreaks) {
+			VoteRewards.rewardVote(p, old.getVoteStreak(), old.getVotesQueued());
+		}
+		oldStreaks.clear();
+		new BukkitRunnable() {
+			public void run() {
+				try (Connection con = NeoCore.getConnection("FoPzlVote");
+						Statement stmt = con.createStatement()) {
+					stmt.executeUpdate("DELETE FROM fopzlvote_oldStreaks WHERE uuid = '" + uuid + "';");
+				}
+				catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}.runTaskAsynchronously(BukkitVote.getInstance());
+		
+		VoteRewards.rewardVote(p, voteStreak, votesQueued);
+		voteStreak += votesQueued;
+		votesQueued = 0;
+	}
+	
 	// Assume this method is called async
 	public void handleVote(String site) {
 		totalVotes++;
@@ -71,8 +100,11 @@ public class VoteStats {
 		monthlySiteCounts.putIfAbsent(now, currCounts);
 		
 		// If our votes are caught up, reward votes as normal
-		if (voteStreak  == votesQueued && oldStreaks.isEmpty() && Bukkit.getPlayer(uuid) != null) {
-			
+		Player p = Bukkit.getPlayer(uuid);
+		if (voteStreak  == votesQueued && oldStreaks.isEmpty() && p != null) {
+			VoteRewards.rewardVote(p, voteStreak, votesQueued);
+			voteStreak += votesQueued;
+			votesQueued = 0;
 		}
 		// Otherwise just increase the streak (Waiting for login to kick in and reward all votes at once)
 		else {

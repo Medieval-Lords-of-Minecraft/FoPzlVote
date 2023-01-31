@@ -17,6 +17,9 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
+
+import me.fopzl.vote.bukkit.BukkitVote;
 import me.neoblade298.neocore.bukkit.NeoCore;
 import me.neoblade298.neocore.bukkit.io.IOComponent;
 
@@ -62,7 +65,15 @@ public class BukkitVoteIO implements IOComponent {
 
 	@Override
 	public void loadPlayer(Player p, Statement stmt) {
-		loadPlayer(p.getUniqueId(), stmt);
+		UUID uuid = p.getUniqueId();
+		loadPlayer(uuid, stmt);
+		new BukkitRunnable() {
+			public void run() {
+				if (stats.containsKey(uuid)) {
+					stats.get(uuid).
+				}
+			}
+		}.runTaskLater(BukkitVote.getInstance(), 100L);
 	}
 	
 	private static void loadPlayer(UUID uuid, Statement stmt) {

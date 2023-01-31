@@ -9,9 +9,6 @@ import com.alessiodp.lastloginapi.api.LastLogin;
 import com.alessiodp.lastloginapi.api.interfaces.LastLoginPlayer;
 
 import me.fopzl.vote.bukkit.VoteSiteInfo;
-import me.fopzl.vote.bungee.BungeeVote;
-import me.neoblade298.neocore.shared.util.SharedUtil;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 public class VoteUtil {
 	private static HashMap<String, VoteSiteInfo> voteSites = new HashMap<String, VoteSiteInfo>();

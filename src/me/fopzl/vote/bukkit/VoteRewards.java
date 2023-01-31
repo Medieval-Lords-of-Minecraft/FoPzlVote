@@ -19,8 +19,8 @@ import me.fopzl.vote.bukkit.io.VoteStats;
 public class VoteRewards {
 	private Map<String, Reward> allRewards;
 
-	private Reward dailyReward;
-	private Map<Integer, Set<Reward>> streakRewards;
+	private static Reward dailyReward;
+	private static Map<Integer, Set<Reward>> streakRewards;
 	
 	public void reload(YamlConfiguration cfg) {
 		allRewards = new HashMap<String, Reward>();
@@ -32,46 +32,50 @@ public class VoteRewards {
 		
 		ConfigurationSection groupSec = cfg.getConfigurationSection("groups");
 		for(String gName : groupSec.getKeys(false)) {
-			allRewards.put(gName, new RewardGroup());
+			RewardGroup g = new RewardGroup();
+			for(String groupItem : groupSec.getStringList(gName)) {
+				Reward r = allRewards.get(groupItem);
+				if (r == null) {
+					Bukkit.getLogger().warning("[FoPzlVote] Failed to load reward " + groupItem + " for group " + gName);
+					continue;
+				}
+				g.addReward(r);
+			}
+			allRewards.put(gName, g);
 		}
 		
 		ConfigurationSection poolSec = cfg.getConfigurationSection("pools");
 		for(String pName : poolSec.getKeys(false)) {
-			allRewards.put(pName, new RewardPool());
+			RewardPool p = new RewardPool();
+			ConfigurationSection subSec = poolSec.getConfigurationSection(pName);
+			for(String poolItem : subSec.getKeys(false)) {
+				Reward r = allRewards.get(poolItem);
+				if (r == null) {
+					Bukkit.getLogger().warning("[FoPzlVote] Failed to load reward " + poolItem + " for pool " + pName);
+					continue;
+				}
+				p.addReward(r, subSec.getInt(poolItem));
+			}
+			allRewards.put(pName, p);
 		}
 		
 		ConfigurationSection restrictSec = cfg.getConfigurationSection("permissioned-groups");
 		for(String rName : restrictSec.getKeys(false)) {
-			allRewards.put(rName, new RestrictedReward());
-		}
-		
-		for(String groupName : groupSec.getKeys(false)) {
-			RewardGroup g = (RewardGroup)allRewards.get(groupName);
+			RestrictedReward rr = new RestrictedReward();
 			
-			for(String groupItem : groupSec.getStringList(groupName)) {
-				g.addReward(allRewards.get(groupItem));
-			}
-		}
-		
-		for(String poolName : poolSec.getKeys(false)) {
-			RewardPool p = (RewardPool)allRewards.get(poolName);
-			
-			ConfigurationSection subSec = poolSec.getConfigurationSection(poolName);
-			for(String poolItem : subSec.getKeys(false)) {
-				p.addReward(allRewards.get(poolItem), subSec.getInt(poolItem));
-			}
-		}
-		
-		for(String permGroupName : restrictSec.getKeys(false)) {
-			RestrictedReward r = (RestrictedReward)allRewards.get(permGroupName);
-			
-			for(Object o : restrictSec.getList(permGroupName)) {
+			for(Object o : restrictSec.getList(rName)) {
 				@SuppressWarnings("unchecked")
 				Entry<String, String> permGroupItem = ((Map<String, String>)o).entrySet().iterator().next();
 				String permName = permGroupItem.getKey();
 				String rewardName = permGroupItem.getValue();
-				r.addReward(allRewards.get(rewardName), permName);
+				Reward r = allRewards.get(rewardName);
+				if (r == null) {
+					Bukkit.getLogger().warning("[FoPzlVote] Failed to load reward " + rewardName + " for permission group " + permName);
+					continue;
+				}
+				rr.addReward(r, permName);
 			}
+			allRewards.put(rName, rr);
 		}
 		
 		streakRewards = new HashMap<Integer, Set<Reward>>();
@@ -82,7 +86,12 @@ public class VoteRewards {
 			streakRewards.putIfAbsent(streakNum, itemSet);
 			
 			for(String streakItem : streakSec.getStringList(s)) {
-				itemSet.add(allRewards.get(streakItem));
+				Reward r = allRewards.get(streakItem);
+				if (r == null) {
+					Bukkit.getLogger().warning("[FoPzlVote] Failed to load reward " + streakItem + " for streak " + streakNum);
+					continue;
+				}
+				itemSet.add(r);
 			}
 		}
 		
@@ -90,7 +99,7 @@ public class VoteRewards {
 	}
 	
 	// streak is in votes, not days
-	public void rewardVote(Player p, VoteStats stats) {
+	public static void rewardVote(Player p, VoteStats stats) {
 		dailyReward.giveReward(p);
 		int streak = stats.getStreak();
 		

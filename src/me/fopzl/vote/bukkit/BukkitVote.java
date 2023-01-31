@@ -19,6 +19,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import com.vexsoftware.votifier.model.Vote;
 import com.vexsoftware.votifier.model.VotifierEvent;
@@ -68,24 +69,21 @@ public class BukkitVote extends JavaPlugin implements Listener {
 		String site = vote.getServiceName();
 		String user = vote.getUsername();
 		UUID uuid = VoteUtil.checkVote(user, site);
-		if (uuid != null) {
-			
+		if (uuid == null) {
+			Bukkit.getLogger().warning("[FoPzlVote] Vote failed, invalid username " + user);
 		}
-		if (voteSites.containsKey(site) || site.equalsIgnoreCase("freevote")) {
-			if (!user.matches("[a-zA-Z0-9]*")) {
-				Bukkit.getLogger().warning("[FopzlVote] Vote failed due to invalid username: " + user);
-				return;
-			}
 
-			Player p = Bukkit.getPlayer(user);
-			if (p != null) {
-				rewardVote(p.getPlayer());
+		Player p = Bukkit.getPlayer(user);
+		new BukkitRunnable() {
+			public void run() {
+				VoteStats stats = BukkitVoteIO.loadOrGetStats(p.getUniqueId());
+				if (stats == null) {
+					Bukkit.getLogger().warning("[FoPzlVote] Vote failed, could not load stats for " + user);
+					return;
+				}
+				stats.handleVote(site);
 			}
-			else {
-				VoteStats vsg = BukkitVoteIO.stats.get(p.getUniqueId());
-				vsg.addVote(site);
-			}
-		}
+		}.runTaskAsynchronously(BukkitVote.instance);
 	}
 
 	public void onDisable() {

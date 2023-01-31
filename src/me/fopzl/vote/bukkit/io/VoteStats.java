@@ -2,7 +2,9 @@ package me.fopzl.vote.bukkit.io;
 
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -11,6 +13,7 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 
 import me.fopzl.vote.bukkit.BukkitVote;
+import me.neoblade298.neocore.bukkit.NeoCore;
 
 public class VoteStats {
 	private static int streakLimit = 0;
@@ -22,6 +25,7 @@ public class VoteStats {
 	private LocalDateTime lastVoted;
 	private HashMap<VoteMonth, Map<String, Integer>> monthlySiteCounts; // value is <voteSite, votes this month>
 	private boolean dirty;
+	private ArrayList<OldVoteStreak> oldStreaks = new ArrayList<OldVoteStreak>();
 	
 	public VoteStats(UUID uuid) {
 		this.uuid = uuid;
@@ -30,10 +34,11 @@ public class VoteStats {
 		setMonthlySiteCounts(new HashMap<VoteMonth, Map<String, Integer>>());
 	}
 	
-	public VoteStats(UUID uuid, int totalVotes, int voteStreak, LocalDateTime lastVoted) {
+	public VoteStats(UUID uuid, int totalVotes, int voteStreak, int votesQueued, LocalDateTime lastVoted) {
 		this.uuid = uuid;
 		this.totalVotes = totalVotes;
 		this.lastVoted = lastVoted;
+		this.votesQueued = votesQueued;
 		setMonthlySiteCounts(new HashMap<VoteMonth, Map<String, Integer>>());
 	}
 	
@@ -41,19 +46,38 @@ public class VoteStats {
 		return lastVoted;
 	}
 	
-	public void addVote(String site) {
+	// Assume this method is called async
+	public void handleVote(String site) {
 		totalVotes++;
 		
 		if (BukkitVote.debug) {
-			Bukkit.getLogger().info("[FoPzlVote] Incremented player " + uuid + " total votes to " + totalVotes);
+			Bukkit.getLogger().info("[FoPzlVote] Handled vote for player " + uuid + ", total votes " + totalVotes);
 		}
 		
-		lastVoted = LocalDateTime.now();
+		// Check for streak loss
+		LocalDateTime time = LocalDateTime.now();
+		if (Duration.between(lastVoted, time).compareTo(Duration.ofDays(streakResetTime)) > 0) {
+			Bukkit.getLogger().info("[FoPzlVote] Player " + uuid + " lost streak, last vote was " + lastVoted + ", now is " + time + ". Old vote streak " + voteStreak + ", queued " + votesQueued);
+			oldStreaks.add(new OldVoteStreak(voteStreak, votesQueued));
+			voteStreak = 0;
+			votesQueued = 0;
+		}
 		
+		// Monthly vote counts
+		lastVoted = time;
 		VoteMonth now = new VoteMonth(LocalDateTime.now().getYear(), LocalDateTime.now().getMonthValue());
-		Map<String, Integer> currCounts = getMonthlySiteCounts().getOrDefault(now, new HashMap<String, Integer>());
+		Map<String, Integer> currCounts = monthlySiteCounts.getOrDefault(now, new HashMap<String, Integer>());
 		currCounts.put(site, currCounts.getOrDefault(site, 0) + 1);
-		getMonthlySiteCounts().putIfAbsent(now, currCounts);
+		monthlySiteCounts.putIfAbsent(now, currCounts);
+		
+		// If our votes are caught up, reward votes as normal
+		if (voteStreak  == votesQueued && oldStreaks.isEmpty() && Bukkit.getPlayer(uuid) != null) {
+			
+		}
+		// Otherwise just increase the streak (Waiting for login to kick in and reward all votes at once)
+		else {
+			votesQueued++;
+		}
 	}
 	
 	public int getTotalVotes() {
@@ -76,6 +100,7 @@ public class VoteStats {
 	public void save(Statement insert, Statement delete) {
 		try {
 			insert.addBatch("replace into fopzlvote_playerStats values ('" + uuid + "', " + totalVotes  + ", '" + lastVoted.toString() + "');");
+			insert.addBatch("replace into fopzlvote_playerQueue values ('" + uuid + "', '" + NeoCore.getInstanceKey() + "'," + voteStreak + "," + votesQueued + ");");
 			
 			int year = LocalDateTime.now().getYear();
 			int month = LocalDateTime.now().getMonthValue();
@@ -151,5 +176,13 @@ public class VoteStats {
 
 	public static void setStreakResetTime(int streakResetTime) {
 		VoteStats.streakResetTime = streakResetTime;
+	}
+	
+	public void addStreak(OldVoteStreak streak) {
+		oldStreaks.add(streak);
+	}
+	
+	public ArrayList<OldVoteStreak> getStreaks() {
+		return oldStreaks;
 	}
 }

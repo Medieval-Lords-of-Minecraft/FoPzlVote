@@ -14,10 +14,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
-import me.fopzl.vote.bukkit.io.VoteStats;
-
 public class VoteRewards {
-	private Map<String, Reward> allRewards;
+	private static Map<String, Reward> allRewards;
 
 	private static Reward dailyReward;
 	private static Map<Integer, Set<Reward>> streakRewards;
@@ -126,7 +124,7 @@ public class VoteRewards {
 		}
 	}
 
-	public boolean giveReward(Player p, String rewardName) {
+	public static boolean giveReward(Player p, String rewardName) {
 		if(allRewards.containsKey(rewardName)) {
 			allRewards.get(rewardName).giveReward(p);
 			return true;

@@ -27,7 +27,7 @@ public class VoteStats {
 	private int totalVotes; // ever
 	private int voteStreak = 0, votesQueued = 0;
 	private LocalDateTime lastVoted;
-	private HashMap<VoteMonth, Map<String, Integer>> monthlySiteCounts; // value is <voteSite, votes this month>
+	private HashMap<VoteMonth, Map<String, Integer>> monthlySiteCounts = new HashMap<VoteMonth, Map<String, Integer>>();
 	private boolean dirty;
 	private ArrayList<OldVoteStreak> oldStreaks = new ArrayList<OldVoteStreak>();
 	
@@ -35,7 +35,6 @@ public class VoteStats {
 		this.uuid = uuid;
 		totalVotes = 0;
 		lastVoted = LocalDateTime.of(0, 1, 1, 0, 0);
-		setMonthlySiteCounts(new HashMap<VoteMonth, Map<String, Integer>>());
 	}
 	
 	public VoteStats(UUID uuid, int totalVotes, int voteStreak, int votesQueued, LocalDateTime lastVoted) {
@@ -43,7 +42,6 @@ public class VoteStats {
 		this.totalVotes = totalVotes;
 		this.lastVoted = lastVoted;
 		this.votesQueued = votesQueued;
-		setMonthlySiteCounts(new HashMap<VoteMonth, Map<String, Integer>>());
 	}
 	
 	public LocalDateTime getLastVoted() {
@@ -55,7 +53,7 @@ public class VoteStats {
 		if (p == null) return;
 		
 		for (OldVoteStreak old : oldStreaks) {
-			VoteRewards.rewardVote(p, old.getVoteStreak(), old.getVotesQueued());
+			VoteRewards.rewardVotes(p, old.getVoteStreak(), old.getVotesQueued());
 		}
 		oldStreaks.clear();
 		new BukkitRunnable() {
@@ -70,7 +68,7 @@ public class VoteStats {
 			}
 		}.runTaskAsynchronously(BukkitVote.getInstance());
 		
-		VoteRewards.rewardVote(p, voteStreak, votesQueued);
+		VoteRewards.rewardVotes(p, voteStreak, votesQueued);
 		voteStreak += votesQueued;
 		votesQueued = 0;
 	}
@@ -102,7 +100,7 @@ public class VoteStats {
 		// If our votes are caught up, reward votes as normal
 		Player p = Bukkit.getPlayer(uuid);
 		if (voteStreak  == votesQueued && oldStreaks.isEmpty() && p != null) {
-			VoteRewards.rewardVote(p, voteStreak, votesQueued);
+			VoteRewards.rewardVotes(p, voteStreak, votesQueued);
 			voteStreak += votesQueued;
 			votesQueued = 0;
 		}

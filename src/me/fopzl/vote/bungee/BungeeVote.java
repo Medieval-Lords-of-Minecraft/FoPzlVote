@@ -16,11 +16,10 @@ import com.vexsoftware.votifier.model.Vote;
 
 import me.fopzl.vote.bukkit.VoteCooldown;
 import me.fopzl.vote.bukkit.VoteSiteInfo;
-import me.fopzl.vote.bukkit.io.VoteMonth;
 import me.fopzl.vote.bungee.io.BungeeVoteIO;
 import me.fopzl.vote.shared.VoteUtil;
+import me.neoblade298.neocore.bukkit.bungee.BungeeAPI;
 import me.neoblade298.neocore.bungee.BungeeCore;
-import me.neoblade298.neocore.shared.util.SharedUtil;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.event.EventHandler;
@@ -41,6 +40,7 @@ public class BungeeVote extends Plugin implements Listener
 	public void reload() {
 		File mainCfg = new File(getDataFolder(), "config.yml");
 		YamlConfiguration cfg = YamlConfiguration.loadConfiguration(mainCfg);
+		VoteUtil.resetVoteSites();
 		
 		// Valid websites
 		ConfigurationSection siteSec = cfg.getConfigurationSection("websites");
@@ -70,8 +70,8 @@ public class BungeeVote extends Plugin implements Listener
 		String user = vote.getUsername();
 		UUID uuid = VoteUtil.checkVote(user, site);
 		if (uuid == null) return;
-		SharedUtil.broadcast("&e" + user + " &7just voted on &c" + site + "&7!");
 		
+		BungeeAPI.broadcast("&e" + user + " &7just voted on &c" + site + "&7!");
 		BungeeVoteParty.addPoints(1);
 		
 		// Update global stats, but after 5 seconds to give local stats chance to load them first

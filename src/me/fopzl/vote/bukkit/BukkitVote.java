@@ -1,18 +1,9 @@
 package me.fopzl.vote.bukkit;
 
 import java.io.File;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -30,7 +21,6 @@ import me.fopzl.vote.bukkit.io.VoteStats;
 import me.fopzl.vote.shared.VoteUtil;
 import me.neoblade298.neocore.bukkit.NeoCore;
 import me.neoblade298.neocore.bukkit.commands.SubcommandManager;
-import me.neoblade298.neocore.bukkit.util.Util;
 import me.neoblade298.neocore.shared.commands.SubcommandRunner;
 import net.md_5.bungee.api.ChatColor;
 
@@ -39,7 +29,6 @@ public class BukkitVote extends JavaPlugin implements Listener {
 	private static VoteRewards rewards;
 	private static VoteParty voteParty;
 
-	private static Map<String, VoteSiteInfo> voteSites; // key is servicename, not nickname
 
 	private static BukkitVote instance;
 	public static boolean debug = false;
@@ -51,10 +40,6 @@ public class BukkitVote extends JavaPlugin implements Listener {
 		voteParty = new VoteParty();
 
 		getServer().getPluginManager().registerEvents(this, this);
-
-		MLVoteCommand mlvoteCmd = new MLVoteCommand(this);
-		this.getCommand("mlvote").setExecutor(mlvoteCmd);
-		this.getCommand("mlvote").setTabCompleter(mlvoteCmd);
 
 		NeoCore.registerIOComponent(this, new BukkitVoteIO(), "FoPzlVoteIO");
 
@@ -74,6 +59,14 @@ public class BukkitVote extends JavaPlugin implements Listener {
 		mngr.register(new CmdVoteCooldown("cooldown", "Shows vote site cooldowns", null, SubcommandRunner.BOTH));
 		mngr.register(new CmdVoteLeaderboard("leaderboard", "Shows top voters of the month", null, SubcommandRunner.BOTH));
 		mngr.register(new CmdVoteStats("stats", "Shows vote stats", null, SubcommandRunner.BOTH));
+		
+		mngr = new SubcommandManager("adminvote", "fopzlvote.admin", ChatColor.DARK_RED, this);
+		mngr.registerCommandList("");
+		mngr.register(new CmdAdminVoteDebug("debug", "Toggle debug mode", null, SubcommandRunner.BOTH));
+		mngr.register(new CmdAdminVoteReload("reload", "Reloads config", null, SubcommandRunner.BOTH));
+		mngr.register(new CmdAdminVoteReward("reward", "Gives a reward to a player", null, SubcommandRunner.BOTH));
+		mngr.register(new CmdAdminVoteSetstreak("setstreak", "Sets a player's streak", null, SubcommandRunner.BOTH));
+		mngr.register(new CmdAdminVoteVote("vote", "Sends a test vote", null, SubcommandRunner.BOTH));
 	}
 
 	@EventHandler
@@ -100,8 +93,6 @@ public class BukkitVote extends JavaPlugin implements Listener {
 	}
 
 	public void onDisable() {
-		// TODO BukkitVoteIO.saveQueue();
-
 		Bukkit.getServer().getLogger().info("FoPzlVote Disabled");
 		super.onDisable();
 	}
@@ -110,28 +101,28 @@ public class BukkitVote extends JavaPlugin implements Listener {
 		return instance;
 	}
 
-	public void loadAllConfigs() {
-		File mainCfg = new File(getDataFolder(), "config.yml");
+	public static void loadAllConfigs() {
+		File mainCfg = new File(instance.getDataFolder(), "config.yml");
 		if (!mainCfg.exists()) {
-			saveResource("config.yml", false);
+			instance.saveResource("config.yml", false);
 		}
-		this.reload(YamlConfiguration.loadConfiguration(mainCfg));
+		instance.reload(YamlConfiguration.loadConfiguration(mainCfg));
 
-		File rewardsCfg = new File(getDataFolder(), "rewards.yml");
+		File rewardsCfg = new File(instance.getDataFolder(), "rewards.yml");
 		if (!rewardsCfg.exists()) {
-			saveResource("rewards.yml", false);
+			instance.saveResource("rewards.yml", false);
 		}
 		rewards.reload(YamlConfiguration.loadConfiguration(rewardsCfg));
 
-		File votepartyCfg = new File(getDataFolder(), "voteparty.yml");
+		File votepartyCfg = new File(instance.getDataFolder(), "voteparty.yml");
 		if (!votepartyCfg.exists()) {
-			saveResource("voteparty.yml", false);
+			instance.saveResource("voteparty.yml", false);
 		}
 		voteParty.reload(YamlConfiguration.loadConfiguration(votepartyCfg));
 	}
 
 	public void reload(YamlConfiguration cfg) {
-		voteSites = new HashMap<String, VoteSiteInfo>();
+		VoteUtil.resetVoteSites();
 
 		ConfigurationSection siteSec = cfg.getConfigurationSection("websites");
 		for (String siteNick : siteSec.getKeys(false)) {
@@ -146,7 +137,7 @@ public class BukkitVote extends JavaPlugin implements Listener {
 
 			vsi.cooldown = new VoteCooldown(cdType, cdTime, timezone);
 
-			voteSites.put(vsi.serviceName, vsi);
+			VoteUtil.addVoteSite(vsi.nickname, vsi);
 		}
 
 		VoteStats.setStreakLimit(cfg.getInt("streak-vote-limit"));
@@ -155,24 +146,5 @@ public class BukkitVote extends JavaPlugin implements Listener {
 
 	public static VoteParty getVoteParty() {
 		return voteParty;
-	}
-
-	public static void cmdVote(String username, String serviceName) {
-		/*
-		 * JsonObject o = new JsonObject(); o.addProperty("serviceName", serviceName);
-		 * o.addProperty("username", username); o.addProperty("address", "xxx");
-		 * o.addProperty("timestamp", "xxx");
-		 * 
-		 * VoteListener.onVote(new VotifierEvent(new
-		 * com.vexsoftware.votifier.model.Vote(o)));
-		 */
-	}
-	
-	public static Map<String, VoteSiteInfo> getSites() {
-		return voteSites;
-	}
-
-	public static boolean giveReward(String username, String rewardName) {
-		return rewards.giveReward(Bukkit.getServer().getPlayer(username), rewardName);
 	}
 }

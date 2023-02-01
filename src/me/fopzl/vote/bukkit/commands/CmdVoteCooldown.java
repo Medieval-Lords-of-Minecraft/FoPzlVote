@@ -14,6 +14,7 @@ import me.fopzl.vote.bukkit.BukkitVote;
 import me.fopzl.vote.bukkit.VoteSiteInfo;
 import me.fopzl.vote.bukkit.io.BukkitVoteIO;
 import me.fopzl.vote.bukkit.io.VoteStats;
+import me.fopzl.vote.shared.VoteUtil;
 import me.neoblade298.neocore.bukkit.commands.Subcommand;
 import me.neoblade298.neocore.bukkit.util.Util;
 import me.neoblade298.neocore.shared.commands.Arg;
@@ -51,7 +52,7 @@ public class CmdVoteCooldown extends Subcommand {
 		
 		String msg = "&eVote Site Cooldowns for &6" + player.getName() + "&e:";
 		LocalDateTime lastVoted = stats.getLastVoted();
-		for (Entry<String, VoteSiteInfo> site : BukkitVote.getSites().entrySet()) {
+		for (Entry<String, VoteSiteInfo> site : VoteUtil.getVoteSites().entrySet()) {
 			Duration dur = site.getValue().cooldown.getCooldownRemaining(lastVoted);
 			String cd = dur.isNegative() ? "&aReady!" : String.format("&c%02d:%02d:%02d", dur.toHours(), dur.toMinutesPart(), dur.toSecondsPart());
 			

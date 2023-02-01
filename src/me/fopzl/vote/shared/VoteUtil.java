@@ -28,8 +28,16 @@ public class VoteUtil {
 		}
 	};
 	
+	public static void resetVoteSites() {
+		voteSites.clear();
+	}
+	
 	public static void addVoteSite(String site, VoteSiteInfo info) {
 		voteSites.put(site, info);
+	}
+	
+	public static HashMap<String, VoteSiteInfo> getVoteSites() {
+		return voteSites;
 	}
 	
 	// Checks if a vote is viable via the provided username, null if the vote is invalid

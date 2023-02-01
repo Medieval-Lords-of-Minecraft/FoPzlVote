@@ -19,8 +19,7 @@ public class CmdVoteLeaderboard extends Subcommand {
 		super(key, desc, perm, runner);
 		aliases = new String[] {"lb"};
 	}
-
-	@SuppressWarnings("deprecation")
+ 
 	@Override
 	public void run(CommandSender s, String[] args) {
 		new BukkitRunnable() {

@@ -3,7 +3,7 @@ package me.fopzl.vote.bukkit.commands;
 import org.bukkit.command.CommandSender;
 import me.neoblade298.neocore.bukkit.commands.Subcommand;
 import me.neoblade298.neocore.shared.commands.SubcommandRunner;
-import me.neoblade298.neocore.shared.messaging.MessagingManager;
+import me.neoblade298.neocore.bukkit.messaging.MessagingManager;
 
 public class CmdVote extends Subcommand {
 

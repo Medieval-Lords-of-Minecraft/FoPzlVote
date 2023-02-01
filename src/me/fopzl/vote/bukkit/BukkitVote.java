@@ -20,6 +20,7 @@ import me.fopzl.vote.bukkit.io.BukkitVoteIO;
 import me.fopzl.vote.bukkit.io.VoteStats;
 import me.fopzl.vote.shared.VoteUtil;
 import me.neoblade298.neocore.bukkit.NeoCore;
+import me.neoblade298.neocore.bukkit.bungee.PluginMessageEvent;
 import me.neoblade298.neocore.bukkit.commands.SubcommandManager;
 import me.neoblade298.neocore.shared.commands.SubcommandRunner;
 import net.md_5.bungee.api.ChatColor;
@@ -90,6 +91,13 @@ public class BukkitVote extends JavaPlugin implements Listener {
 				stats.handleVote(site);
 			}
 		}.runTaskAsynchronously(BukkitVote.instance);
+	}
+	
+	@EventHandler
+	public static void onPluginMsg(PluginMessageEvent e) {
+		if (e.getChannel().equals("fopzlvote-startparty")) {
+			VoteParty.startCountdown();
+		}
 	}
 
 	public void onDisable() {

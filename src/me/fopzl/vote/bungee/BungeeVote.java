@@ -71,7 +71,7 @@ public class BungeeVote extends Plugin implements Listener
 		UUID uuid = VoteUtil.checkVote(user, site);
 		if (uuid == null) return;
 		
-		BungeeAPI.broadcast("&e" + user + " &7just voted on &c" + site + "&7!");
+		BungeeAPI.mutableBroadcast("votebc", "&e" + user + " &7just voted on &c" + site + "&7!");
 		BungeeVoteParty.addPoints(1);
 		
 		// Update global stats, but after 5 seconds to give local stats chance to load them first

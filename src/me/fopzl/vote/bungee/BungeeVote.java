@@ -1,15 +1,13 @@
 package me.fopzl.vote.bungee;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 import com.vexsoftware.votifier.bungee.events.VotifierEvent;
 import com.vexsoftware.votifier.model.Vote;
@@ -22,6 +20,9 @@ import me.neoblade298.neocore.bukkit.bungee.BungeeAPI;
 import me.neoblade298.neocore.bungee.BungeeCore;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
+import net.md_5.bungee.config.Configuration;
+import net.md_5.bungee.config.ConfigurationProvider;
+import net.md_5.bungee.config.YamlConfiguration;
 import net.md_5.bungee.event.EventHandler;
 
 public class BungeeVote extends Plugin implements Listener
@@ -39,28 +40,32 @@ public class BungeeVote extends Plugin implements Listener
 	
 	public void reload() {
 		File mainCfg = new File(getDataFolder(), "config.yml");
-		YamlConfiguration cfg = YamlConfiguration.loadConfiguration(mainCfg);
-		VoteUtil.resetVoteSites();
-		
-		// Valid websites
-		ConfigurationSection siteSec = cfg.getConfigurationSection("websites");
-		for (String siteNick : siteSec.getKeys(false)) {
-			VoteSiteInfo vsi = new VoteSiteInfo();
-			vsi.nickname = siteNick;
+		try {
+			Configuration cfg = ConfigurationProvider.getProvider(YamlConfiguration.class).load(mainCfg);
+			VoteUtil.resetVoteSites();
 			
-			ConfigurationSection subSec = siteSec.getConfigurationSection(siteNick);
-			vsi.serviceName = subSec.getString("serviceName");
-			boolean cdType = subSec.getString("cooldownType").equalsIgnoreCase("fixed");
-			int cdTime = subSec.getInt("cooldownTime");
-			String timezone = subSec.getString("timezone");
-			
-			vsi.cooldown = new VoteCooldown(cdType, cdTime, timezone);
+			// Valid websites
+			Configuration siteSec = cfg.getSection("websites");
+			for (String siteNick : siteSec.getKeys()) {
+				VoteSiteInfo vsi = new VoteSiteInfo();
+				vsi.nickname = siteNick;
+				
+				Configuration subSec = siteSec.getSection(siteNick);
+				vsi.serviceName = subSec.getString("serviceName");
+				boolean cdType = subSec.getString("cooldownType").equalsIgnoreCase("fixed");
+				int cdTime = subSec.getInt("cooldownTime");
+				String timezone = subSec.getString("timezone");
+				
+				vsi.cooldown = new VoteCooldown(cdType, cdTime, timezone);
 
-			VoteUtil.addVoteSite(vsi.serviceName, vsi);
+				VoteUtil.addVoteSite(vsi.serviceName, vsi);
+			}
+			
+			Configuration sec = cfg.getSection("voteparty");
+			BungeeVoteParty.load(sec);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		
-		ConfigurationSection sec = cfg.getConfigurationSection("voteparty");
-		new BungeeVoteParty(sec);
 	}
 
 	@EventHandler

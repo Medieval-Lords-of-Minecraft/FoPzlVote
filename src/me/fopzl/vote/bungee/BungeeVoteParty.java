@@ -4,32 +4,31 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
-import org.bukkit.Bukkit;
-import org.bukkit.configuration.ConfigurationSection;
-
 import me.neoblade298.neocore.bungee.BungeeCore;
 import me.neoblade298.neocore.bungee.util.Util;
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.config.Configuration;
 
 public class BungeeVoteParty {
 	private static int pointsToStart, points, notifyInterval;
-	private static String notifyCommand;
+	private static String notifyMsg;
 	private static HashMap<Integer, String> specificNotifies = new HashMap<Integer, String>();
 	private static HashMap<String, Integer> servers = new HashMap<String, Integer>();
-	public BungeeVoteParty(ConfigurationSection sec) {
+	
+	public static void load(Configuration sec) {
 		pointsToStart = sec.getInt("points-to-start", 500);
-		notifyCommand = sec.getString("notifications.interval.command");
+		notifyMsg = sec.getString("notifications.interval.msg");
 		notifyInterval = sec.getInt("notifications.interval.num");
 		
-		ConfigurationSection specificSec = sec.getConfigurationSection("notifications.specific"); 
-		for(String key : specificSec.getKeys(false)) {
+		Configuration specificSec = sec.getSection("notifications.specific"); 
+		for(String key : specificSec.getKeys()) {
 			int pointNum = Integer.parseInt(key);
-			String cmd = specificSec.getString(key);
-			specificNotifies.put(pointNum, cmd);
+			String msg = specificSec.getString(key);
+			specificNotifies.put(pointNum, msg);
 		}
 		
-		ConfigurationSection serverSec = sec.getConfigurationSection("servers");
-		for (String key : serverSec.getKeys(false)) {
+		Configuration serverSec = sec.getSection("servers");
+		for (String key : serverSec.getKeys()) {
 			servers.put(key, serverSec.getInt(key));
 		}
 	}
@@ -52,13 +51,13 @@ public class BungeeVoteParty {
 	}
 	
 	private static void tick() {
-		if(points % notifyInterval == 0) {
-			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), notifyCommand.replace("%points%", points + "").replace("%votesremaining%", (pointsToStart - points) + ""));
+		if(points % notifyInterval == 0 && points != pointsToStart) {
+			Util.broadcast(notifyMsg);
 		}
 		
 		for(int i : specificNotifies.keySet()) {
 			if(points == i) {
-				Bukkit.dispatchCommand(Bukkit.getConsoleSender(), specificNotifies.get(i));
+				Util.broadcast(specificNotifies.get(i));
 			}
 		}
 		

@@ -71,11 +71,11 @@ public class BungeeVoteParty {
 		points = 0;
 		for (Entry<String, Integer> e : servers.entrySet()) {
 			if (e.getValue() == 0) {
-				BungeeCore.sendPluginMessage(new String[] {e.getKey()}, new String[] {"fopzlvote-startparty"});
+				BungeeCore.sendPluginMessage(new String[] {e.getKey()}, new String[] {"fopzlvote-startparty"}, true);
 			}
 			else {
 				BungeeVote.inst().getProxy().getScheduler().schedule(BungeeVote.inst(), () -> {
-					BungeeCore.sendPluginMessage(new String[] {e.getKey()}, new String[] {"fopzlvote-startparty"});
+					BungeeCore.sendPluginMessage(new String[] {e.getKey()}, new String[] {"fopzlvote-startparty"}, true);
 				}, e.getValue(), TimeUnit.MINUTES);
 			}
 		}

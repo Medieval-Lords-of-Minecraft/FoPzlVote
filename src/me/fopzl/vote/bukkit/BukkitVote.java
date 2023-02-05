@@ -37,6 +37,8 @@ public class BukkitVote extends JavaPlugin implements Listener {
 	public void onEnable() {
 		super.onEnable();
 
+		instance = this;
+
 		rewards = new VoteRewards();
 		voteParty = new VoteParty();
 
@@ -45,8 +47,6 @@ public class BukkitVote extends JavaPlugin implements Listener {
 		NeoCore.registerIOComponent(this, new BukkitVoteIO(), "FoPzlVoteIO");
 
 		loadAllConfigs();
-
-		instance = this;
 		
 		initCommands();
 
@@ -78,6 +78,7 @@ public class BukkitVote extends JavaPlugin implements Listener {
 		UUID uuid = VoteUtil.checkVote(user, site);
 		if (uuid == null) {
 			Bukkit.getLogger().warning("[FoPzlVote] Vote failed, invalid username " + user);
+			return;
 		}
 
 		Player p = Bukkit.getPlayer(user);
@@ -115,18 +116,13 @@ public class BukkitVote extends JavaPlugin implements Listener {
 			instance.saveResource("config.yml", false);
 		}
 		instance.reload(YamlConfiguration.loadConfiguration(mainCfg));
+		voteParty.reload(YamlConfiguration.loadConfiguration(mainCfg));
 
 		File rewardsCfg = new File(instance.getDataFolder(), "rewards.yml");
 		if (!rewardsCfg.exists()) {
 			instance.saveResource("rewards.yml", false);
 		}
 		rewards.reload(YamlConfiguration.loadConfiguration(rewardsCfg));
-
-		File votepartyCfg = new File(instance.getDataFolder(), "voteparty.yml");
-		if (!votepartyCfg.exists()) {
-			instance.saveResource("voteparty.yml", false);
-		}
-		voteParty.reload(YamlConfiguration.loadConfiguration(votepartyCfg));
 	}
 
 	public void reload(YamlConfiguration cfg) {

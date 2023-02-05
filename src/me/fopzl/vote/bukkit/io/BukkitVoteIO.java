@@ -83,17 +83,17 @@ public class BukkitVoteIO implements IOComponent {
 	
 	private static void loadPlayer(UUID uuid, Statement stmt) {
 		try {
-			ResultSet rs1 = stmt.executeQuery("select * from fopzlvote_playerStats where uuid = '" + uuid + "';");
-			if(!rs1.next()) return;
-
-			ResultSet rs2 = stmt.executeQuery("select * from fopzlvote_playerQueue where uuid = '" + uuid + "' and server = '" + NeoCore.getInstanceKey() + "';");
-			rs2.next();
-			VoteStats vs = new VoteStats(uuid, rs1.getInt("totalVotes"), rs2.getInt("voteStreak"), rs2.getInt("votesQueued"), rs1.getObject("whenLastVoted", LocalDateTime.class));
-			rs1.close();
-			rs2.close();
+			ResultSet rs = stmt.executeQuery("SELECT a.uuid, a.totalVotes, a.whenLastVoted, b.voteStreak, b.votesQueued "
+					+ "FROM MLMC.fopzlvote_playerStats AS a INNER JOIN MLMC.fopzlvote_playerQueue AS b ON a.uuid = b.uuid;");
+			if(!rs.next()) {
+				VoteStats vs = new VoteStats(uuid);
+				stats.put(uuid, vs);
+				return;
+			}
+			VoteStats vs = new VoteStats(uuid, rs.getInt("totalVotes"), rs.getInt("voteStreak"), rs.getInt("votesQueued"), rs.getObject("whenLastVoted", LocalDateTime.class));
 			
 			// Player history
-			ResultSet rs = stmt.executeQuery("select * from fopzlvote_playerHist where uuid = '" + uuid + "';");
+			rs = stmt.executeQuery("select * from fopzlvote_playerHist where uuid = '" + uuid + "';");
 			while(rs.next()) {
 				VoteMonth voteMonth = new VoteMonth(rs.getInt("year"), rs.getInt("month"));
 				String voteSite = rs.getString("voteSite");

@@ -34,7 +34,7 @@ public class VoteStats {
 	public VoteStats(UUID uuid) {
 		this.uuid = uuid;
 		totalVotes = 0;
-		lastVoted = LocalDateTime.of(0, 1, 1, 0, 0);
+		lastVoted = LocalDateTime.now();
 	}
 	
 	public VoteStats(UUID uuid, int totalVotes, int voteStreak, int votesQueued, LocalDateTime lastVoted) {

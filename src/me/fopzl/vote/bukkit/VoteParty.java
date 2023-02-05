@@ -16,16 +16,18 @@ public class VoteParty {
 	public static Map<Integer, String> countdownCommands; // key in seconds
 	
 	public void reload(YamlConfiguration yml) {
-		countdownLength = yml.getInt("general.countdown");
+		countdownLength = yml.getInt("delay");
 		countdownCommands = new HashMap<Integer, String>();
 		ConfigurationSection countdownSec = yml.getConfigurationSection("countdown"); 
-		for(String key : countdownSec.getKeys(false)) {
-			int countNum = Integer.parseInt(key);
-			String cmd = countdownSec.getString(key);
-			countdownCommands.put(countNum, cmd);
+		if (countdownSec != null) {
+			for(String key : countdownSec.getKeys(false)) {
+				int countNum = Integer.parseInt(key);
+				String cmd = countdownSec.getString(key);
+				countdownCommands.put(countNum, cmd);
+			}
 		}
 		
-		partyCommands = yml.getStringList("general.voteparty-commands");
+		partyCommands = yml.getStringList("commands");
 	}
 	
 	public static void startCountdown() {

@@ -16,8 +16,8 @@ import me.fopzl.vote.bukkit.VoteCooldown;
 import me.fopzl.vote.bukkit.VoteSiteInfo;
 import me.fopzl.vote.bungee.io.BungeeVoteIO;
 import me.fopzl.vote.shared.VoteUtil;
-import me.neoblade298.neocore.bukkit.bungee.BungeeAPI;
 import me.neoblade298.neocore.bungee.BungeeCore;
+import me.neoblade298.neocore.bungee.util.Util;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
@@ -31,9 +31,9 @@ public class BungeeVote extends Plugin implements Listener
 	
     @Override
     public void onEnable() {
+        inst = this;
         getProxy().getPluginManager().registerListener(this, this);
         BungeeVoteIO.load();
-        inst = this;
         
         reload();
     }
@@ -76,7 +76,7 @@ public class BungeeVote extends Plugin implements Listener
 		UUID uuid = VoteUtil.checkVote(user, site);
 		if (uuid == null) return;
 		
-		BungeeAPI.mutableBroadcast("votebc", "&e" + user + " &7just voted on &c" + site + "&7!");
+		Util.mutableBroadcast("votebc", "&e" + user + " &7just voted on &c" + site + "&7!");
 		BungeeVoteParty.addPoints(1);
 		
 		// Update global stats, but after 5 seconds to give local stats chance to load them first
@@ -86,8 +86,8 @@ public class BungeeVote extends Plugin implements Listener
 				int year = LocalDateTime.now().getYear();
 				int month = LocalDateTime.now().getMonthValue();
 				String whenLastVoted = LocalDateTime.now().toString();
-				stmt.addBatch("update fopzlvote_playerstats set totalVotes = totalVotes + 1 where uuid = '" + uuid + "';");
-				stmt.addBatch("update fopzlvote_playerstats set whenLastVoted = '" + LocalDateTime.now().toString() + "' where uuid = '" + uuid + "';");
+				stmt.addBatch("update fopzlvote_playerStats set totalVotes = totalVotes + 1 where uuid = '" + uuid + "';");
+				stmt.addBatch("update fopzlvote_playerStats set whenLastVoted = '" + LocalDateTime.now().toString() + "' where uuid = '" + uuid + "';");
 				stmt.addBatch("update fopzlvote_playerHist set numVotes = numVotes + 1 where uuid = '" + uuid + "' and year = " + year + " and month = " + month + ";");
 				stmt.execute("replace into fopzlvote_siteCooldowns values ('" + uuid + "', '" + site + "', '" + whenLastVoted + "');");
 				stmt.executeBatch();

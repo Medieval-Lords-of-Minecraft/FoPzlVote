@@ -8,6 +8,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -70,7 +71,7 @@ public class BukkitVote extends JavaPlugin implements Listener {
 		mngr.register(new CmdAdminVoteVote("vote", "Sends a test vote", null, SubcommandRunner.BOTH));
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.NORMAL)
 	public static void onVote(final VotifierEvent e) {
 		Vote vote = e.getVote();
 		String site = vote.getServiceName();
@@ -89,9 +90,13 @@ public class BukkitVote extends JavaPlugin implements Listener {
 					Bukkit.getLogger().warning("[FoPzlVote] Vote failed, could not load stats for " + user);
 					return;
 				}
-				stats.handleVote(site);
+				new BukkitRunnable() {
+					public void run() {
+						stats.handleVote(site);
+					}
+				}.runTask(instance);
 			}
-		}.runTaskAsynchronously(BukkitVote.instance);
+		}.runTaskAsynchronously(instance);
 	}
 	
 	@EventHandler

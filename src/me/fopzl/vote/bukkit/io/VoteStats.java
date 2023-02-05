@@ -37,11 +37,10 @@ public class VoteStats {
 		lastVoted = LocalDateTime.now();
 	}
 	
-	public VoteStats(UUID uuid, int totalVotes, int voteStreak, int votesQueued, LocalDateTime lastVoted) {
+	public VoteStats(UUID uuid, int totalVotes, LocalDateTime lastVoted) {
 		this.uuid = uuid;
 		this.totalVotes = totalVotes;
 		this.lastVoted = lastVoted;
-		this.votesQueued = votesQueued;
 	}
 	
 	public LocalDateTime getLastVoted() {
@@ -73,17 +72,13 @@ public class VoteStats {
 		votesQueued = 0;
 	}
 	
-	// Assume this method is called async
+	// This method MUST be called synchronously
 	public void handleVote(String site) {
 		totalVotes++;
 		
-		if (BukkitVote.debug) {
-			Bukkit.getLogger().info("[FoPzlVote] Handled vote for player " + uuid + ", total votes " + totalVotes);
-		}
-		
 		// Check for streak loss
 		LocalDateTime time = LocalDateTime.now();
-		if (Duration.between(lastVoted, time).compareTo(Duration.ofDays(streakResetTime)) > 0) {
+		if (Duration.between(lastVoted, time).compareTo(Duration.ofDays(streakResetTime)) > 0 && votesQueued > 0 && voteStreak > 0) {
 			Bukkit.getLogger().info("[FoPzlVote] Player " + uuid + " lost streak, last vote was " + lastVoted + ", now is " + time + ". Old vote streak " + voteStreak + ", queued " + votesQueued);
 			oldStreaks.add(new OldVoteStreak(voteStreak, votesQueued));
 			voteStreak = 0;
@@ -97,16 +92,18 @@ public class VoteStats {
 		currCounts.put(site, currCounts.getOrDefault(site, 0) + 1);
 		monthlySiteCounts.putIfAbsent(now, currCounts);
 		
-		// If our votes are caught up, reward votes as normal
 		Player p = Bukkit.getPlayer(uuid);
-		if (voteStreak  == votesQueued && oldStreaks.isEmpty() && p != null) {
-			VoteRewards.rewardVotes(p, voteStreak, votesQueued);
-			voteStreak += votesQueued;
-			votesQueued = 0;
+		// If our votes are caught up (player is online), reward votes as normal
+		if (votesQueued == 0 && oldStreaks.isEmpty() && p != null) {
+			VoteRewards.rewardVotes(p, ++voteStreak, 1);
 		}
 		// Otherwise just increase the streak (Waiting for login to kick in and reward all votes at once)
 		else {
 			votesQueued++;
+		}
+
+		if (BukkitVote.debug) {
+			Bukkit.getLogger().info("[FoPzlVote] Handled vote for player " + uuid + ", total votes " + totalVotes + ", vote streak " + voteStreak + ", votes queued " + votesQueued);
 		}
 	}
 	

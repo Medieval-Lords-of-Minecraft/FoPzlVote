@@ -83,14 +83,21 @@ public class BukkitVoteIO implements IOComponent {
 	
 	private static void loadPlayer(UUID uuid, Statement stmt) {
 		try {
-			ResultSet rs = stmt.executeQuery("SELECT a.uuid, a.totalVotes, a.whenLastVoted, b.voteStreak, b.votesQueued "
-					+ "FROM MLMC.fopzlvote_playerStats AS a INNER JOIN MLMC.fopzlvote_playerQueue AS b ON a.uuid = b.uuid;");
+			// Make it so it loads global stats and server stats separately
+			ResultSet rs = stmt.executeQuery("SELECT * FROM MLMC.fopzlvote_playerStats WHERE uuid = '" + uuid + "';");
 			if(!rs.next()) {
 				VoteStats vs = new VoteStats(uuid);
 				stats.put(uuid, vs);
 				return;
 			}
-			VoteStats vs = new VoteStats(uuid, rs.getInt("totalVotes"), rs.getInt("voteStreak"), rs.getInt("votesQueued"), rs.getObject("whenLastVoted", LocalDateTime.class));
+			VoteStats vs = new VoteStats(uuid, rs.getInt("totalVotes"), rs.getObject("whenLastVoted", LocalDateTime.class));
+			
+			// Server stats
+			rs = stmt.executeQuery("SELECT * FROM MLMC.fopzlvote_playerQueue WHERE uuid = '" + uuid + "';");
+			if (rs.next()) {
+				vs.setStreak(rs.getInt("voteStreak"));
+				vs.setVotesQueued(rs.getInt("votesQueued"));
+			}
 			
 			// Player history
 			rs = stmt.executeQuery("select * from fopzlvote_playerHist where uuid = '" + uuid + "';");

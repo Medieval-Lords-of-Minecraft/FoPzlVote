@@ -12,8 +12,6 @@ public class CmdAdminVoteDebug extends Subcommand {
 
 	public CmdAdminVoteDebug(String key, String desc, String perm, SubcommandRunner runner) {
 		super(key, desc, perm, runner);
-		args.add(new Arg("username", false), new Arg("site"));
-		aliases = new String[] {"cd"};
 	}
 
 	@Override

@@ -14,10 +14,15 @@ import com.vexsoftware.votifier.model.Vote;
 
 import me.fopzl.vote.bukkit.VoteCooldown;
 import me.fopzl.vote.bukkit.VoteSiteInfo;
+import me.fopzl.vote.bungee.commands.*;
 import me.fopzl.vote.bungee.io.BungeeVoteIO;
 import me.fopzl.vote.shared.VoteUtil;
 import me.neoblade298.neocore.bungee.BungeeCore;
+import me.neoblade298.neocore.bungee.commands.SubcommandManager;
 import me.neoblade298.neocore.bungee.util.Util;
+import me.neoblade298.neocore.shared.commands.SubcommandRunner;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
@@ -35,7 +40,16 @@ public class BungeeVote extends Plugin implements Listener
         getProxy().getPluginManager().registerListener(this, this);
         BungeeVoteIO.load();
         
+        initCommands();
+        
         reload();
+    }
+    
+    private void initCommands() {
+    	SubcommandManager mngr = new SubcommandManager("vp", null, ChatColor.RED, this);
+    	mngr.register(new CmdVotePartyStatus("status", "Checks how many votes left till a vote party!", null, SubcommandRunner.BOTH));
+    	mngr.register(new CmdVotePartySet("set", "Sets the vote party vote count", "fopzlvote.admin", SubcommandRunner.BOTH));
+    	mngr.registerCommandList("");
     }
 	
 	public void reload() {
@@ -75,6 +89,7 @@ public class BungeeVote extends Plugin implements Listener
 		String user = vote.getUsername();
 		UUID uuid = VoteUtil.checkVote(user, site);
 		if (uuid == null) return;
+		ProxiedPlayer p = inst.getProxy().getPlayer(uuid);
 		
 		Util.mutableBroadcast("votebc", "&e" + user + " &7just voted on &c" + site + "&7!");
 		BungeeVoteParty.addPoints(1);
@@ -89,6 +104,8 @@ public class BungeeVote extends Plugin implements Listener
 				stmt.addBatch("update fopzlvote_playerStats set totalVotes = totalVotes + 1 where uuid = '" + uuid + "';");
 				stmt.addBatch("update fopzlvote_playerStats set whenLastVoted = '" + LocalDateTime.now().toString() + "' where uuid = '" + uuid + "';");
 				stmt.addBatch("update fopzlvote_playerHist set numVotes = numVotes + 1 where uuid = '" + uuid + "' and year = " + year + " and month = " + month + ";");
+				stmt.addBatch("update fopzlvote_playerStats set votesQueued = votesQueued + 1 where uuid = '" + uuid +
+						"' AND server != '" + p.getServer().getInfo().getName() + "';");
 				stmt.execute("replace into fopzlvote_siteCooldowns values ('" + uuid + "', '" + site + "', '" + whenLastVoted + "');");
 				stmt.executeBatch();
 			}

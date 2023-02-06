@@ -35,7 +35,6 @@ public class BukkitVoteIO implements IOComponent {
 		ArrayList<UUID> canRemove = new ArrayList<UUID>();
 		for (Entry<UUID, VoteStats> e : stats.entrySet()) {
 			if (e.getValue().isDirty()) {
-				e.getValue().setDirty(false);
 				e.getValue().save(insert, delete);
 			}
 			
@@ -60,7 +59,16 @@ public class BukkitVoteIO implements IOComponent {
 
 	@Override
 	// Handled by autosave
-	public void savePlayer(Player p, Statement insert, Statement delete) {}
+	public void savePlayer(Player p, Statement insert, Statement delete) {
+		// Save player when they logoff, but don't remove them
+		UUID uuid = p.getUniqueId();
+		if (!stats.containsKey(uuid)) return;
+		
+		VoteStats vs = stats.get(uuid);
+		if (vs.isDirty()) {
+			vs.save(insert, delete);
+		}
+	}
 	
 	@Override
 	// handled by general autosave since player may not be online
@@ -69,7 +77,9 @@ public class BukkitVoteIO implements IOComponent {
 	@Override
 	public void loadPlayer(Player p, Statement stmt) {
 		UUID uuid = p.getUniqueId();
-		loadPlayer(uuid, stmt);
+		if (!stats.containsKey(uuid)) {
+			loadPlayer(uuid, stmt);
+		}
 		
 		// 5 seconds after loading in, handle queued votes
 		new BukkitRunnable() {
@@ -92,8 +102,8 @@ public class BukkitVoteIO implements IOComponent {
 			}
 			VoteStats vs = new VoteStats(uuid, rs.getInt("totalVotes"), rs.getObject("whenLastVoted", LocalDateTime.class));
 			
-			// Server stats
-			rs = stmt.executeQuery("SELECT * FROM MLMC.fopzlvote_playerQueue WHERE uuid = '" + uuid + "';");
+			// Local stats
+			rs = stmt.executeQuery("SELECT * FROM MLMC.fopzlvote_playerQueue WHERE uuid = '" + uuid + "' AND server ='" + NeoCore.getInstanceKey() + "';");
 			if (rs.next()) {
 				vs.setStreak(rs.getInt("voteStreak"));
 				vs.setVotesQueued(rs.getInt("votesQueued"));

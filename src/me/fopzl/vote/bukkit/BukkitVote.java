@@ -6,7 +6,6 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -82,10 +81,9 @@ public class BukkitVote extends JavaPlugin implements Listener {
 			return;
 		}
 
-		Player p = Bukkit.getPlayer(user);
 		new BukkitRunnable() {
 			public void run() {
-				VoteStats stats = BukkitVoteIO.loadOrGetStats(p.getUniqueId());
+				VoteStats stats = BukkitVoteIO.loadOrGetStats(uuid);
 				if (stats == null) {
 					Bukkit.getLogger().warning("[FoPzlVote] Vote failed, could not load stats for " + user);
 					return;

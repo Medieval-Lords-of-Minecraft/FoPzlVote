@@ -108,19 +108,19 @@ public class VoteRewards {
 	}
 	
 	public static void rewardVotes(Player p, int streak, int queued) {
-		for (int i = streak; i < streak + queued; i++) {
+		for (int i = streak + 1; i <= streak + queued; i++) {
 			dailyReward.giveReward(p);
 			
-			if(streakRewards.containsKey(streak)) {
-				for(Reward r : streakRewards.get(streak)) {
+			if(streakRewards.containsKey(i)) {
+				for(Reward r : streakRewards.get(i)) {
 					if (r == null) {
-						Bukkit.getLogger().warning("[FoPzlVote] Failed to give a reward for streak " + streak);
+						Bukkit.getLogger().warning("[FoPzlVote] Failed to give a reward for streak " + i);
 						continue;
 					}
 					r.giveReward(p);
 				}
 			}
-			Bukkit.getLogger().info("[FoPzlVote] Gave player " + p.getName() + " reward for streak " + streak);
+			Bukkit.getLogger().info("[FoPzlVote] Gave player " + p.getName() + " reward for streak " + i);
 		}
 	}
 

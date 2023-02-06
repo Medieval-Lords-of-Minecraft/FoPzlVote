@@ -26,7 +26,7 @@ public class CmdVoteStats extends Subcommand {
 		new BukkitRunnable() {
 			@SuppressWarnings("deprecation")
 			public void run() {
-				if(args.length > 1) {
+				if(args.length == 1) {
 					showStats(s, Bukkit.getOfflinePlayer(args[0]));
 				} else {
 					showStats(s, ((Player) s));

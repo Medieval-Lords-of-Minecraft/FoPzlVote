@@ -1,6 +1,7 @@
 package me.fopzl.vote.bukkit.io;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Duration;
@@ -95,12 +96,13 @@ public class VoteStats {
 		Player p = Bukkit.getPlayer(uuid);
 		// If our votes are caught up (player is online), reward votes as normal
 		if (votesQueued == 0 && oldStreaks.isEmpty() && p != null) {
-			VoteRewards.rewardVotes(p, ++voteStreak, 1);
+			VoteRewards.rewardVotes(p, voteStreak++, 1);
 		}
 		// Otherwise just increase the streak (Waiting for login to kick in and reward all votes at once)
 		else {
 			votesQueued++;
 		}
+		dirty = true;
 
 		if (BukkitVote.debug) {
 			Bukkit.getLogger().info("[FoPzlVote] Handled vote for player " + uuid + ", total votes " + totalVotes + ", vote streak " + voteStreak + ", votes queued " + votesQueued);
@@ -122,6 +124,16 @@ public class VoteStats {
 			sum += votes;
 		}
 		return sum;
+	}
+	
+	public void updateGlobalStats(Statement stmt) {
+		try {
+			ResultSet rs = stmt.executeQuery("SELECT * FROM MLMC.fopzlvote_playerStats WHERE uuid = '" + uuid + "';");
+			totalVotes = rs.getInt("totalVotes");
+			lastVoted = rs.getObject("whenLastVoted", LocalDateTime.class);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void save(Statement insert, Statement delete) {
@@ -152,6 +164,7 @@ public class VoteStats {
 					insert.addBatch("replace into fopzlvote_playerHist values ('" + uuid + "', " + year + ", " + month + ", '" + entry.getKey() + "', " + entry.getValue() + ");");
 				}
 			}
+			dirty = false;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -167,10 +180,6 @@ public class VoteStats {
 
 	public boolean isDirty() {
 		return dirty;
-	}
-
-	public void setDirty(boolean dirty) {
-		this.dirty = dirty;
 	}
 
 	public int getStreak() {

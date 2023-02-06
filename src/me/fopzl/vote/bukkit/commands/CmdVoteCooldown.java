@@ -33,8 +33,8 @@ public class CmdVoteCooldown extends Subcommand {
 	public void run(CommandSender s, String[] args) {
 		new BukkitRunnable() {
 			public void run() {
-				if(args.length > 1) {
-					OfflinePlayer player = Bukkit.getOfflinePlayer(args[1]);
+				if(args.length == 1) {
+					OfflinePlayer player = Bukkit.getOfflinePlayer(args[0]);
 					showCooldowns(s, player);
 				} else {
 					showCooldowns(s, (Player) s);

@@ -37,6 +37,10 @@ public class BungeeVoteParty {
 		Util.msg(s, "&e" + points + " / " + pointsToStart + " &7votes for a vote party to commence!");
 	}
 	
+	public static int getPointsToStart() {
+		return pointsToStart;
+	}
+	
 	public static void addPoints(int pts) {
 		points += pts;
 		tick();

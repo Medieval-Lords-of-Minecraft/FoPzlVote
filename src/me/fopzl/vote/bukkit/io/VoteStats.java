@@ -53,6 +53,7 @@ public class VoteStats {
 		if (p == null) return;
 		
 		for (OldVoteStreak old : oldStreaks) {
+			Bukkit.getLogger().info("[FoPzlVote] Player " + uuid + " was given old vote streak " + old.getVoteStreak() + " with " + old.getVotesQueued() + " queued");
 			VoteRewards.rewardVotes(p, old.getVoteStreak(), old.getVotesQueued());
 		}
 		oldStreaks.clear();

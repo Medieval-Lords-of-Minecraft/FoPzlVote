@@ -122,7 +122,7 @@ public class BukkitVoteIO implements IOComponent {
 			}
 			
 			// Old streaks
-			rs = stmt.executeQuery("select * from fopzlvote_oldStreaks where uuid = '" + uuid + "';");
+			rs = stmt.executeQuery("select * from fopzlvote_oldStreaks where uuid = '" + uuid + "' AND server = '" + NeoCore.getInstanceKey() + "';");
 			while(rs.next()) {
 				vs.addStreak(new OldVoteStreak(rs.getInt("voteStreak"), rs.getInt("votesQueued")));
 			}

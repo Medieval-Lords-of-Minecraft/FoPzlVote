@@ -88,8 +88,15 @@ public class BungeeVote extends Plugin implements Listener
 		Vote vote = e.getVote();
 		String site = vote.getServiceName();
 		String user = vote.getUsername();
-		UUID uuid = VoteUtil.checkVote(user, site);
-		if (uuid == null) return;
+		final UUID uuid;
+		try {
+			uuid = VoteUtil.checkVote(user, site);
+		}
+		catch (Exception ex) {
+			ex.printStackTrace();
+			inst.getLogger().warning("[FoPzlVote] Vote failed for username " + user + " on site " + site);
+			return;
+		}
 		ProxiedPlayer p = inst.getProxy().getPlayer(uuid);
 		
 		Util.mutableBroadcast("votebc", "&e" + user + " &7just voted on &c" + site + "&7!");
@@ -106,11 +113,11 @@ public class BungeeVote extends Plugin implements Listener
 				stmt.addBatch("update fopzlvote_playerStats set whenLastVoted = '" + LocalDateTime.now().toString() + "' where uuid = '" + uuid + "';");
 				stmt.addBatch("update fopzlvote_playerHist set numVotes = numVotes + 1 where uuid = '" + uuid + "' and year = " + year + " and month = " + month + ";");
 				if (p != null) {
-					stmt.addBatch("update fopzlvote_playerStats set votesQueued = votesQueued + 1 where uuid = '" + uuid +
+					stmt.addBatch("update fopzlvote_playerQueue set votesQueued = votesQueued + 1 where uuid = '" + uuid +
 							"' AND server != '" + p.getServer().getInfo().getName() + "';");
 				}
 				else {
-					stmt.addBatch("update fopzlvote_playerStats set votesQueued = votesQueued + 1 where uuid = '" + uuid + "';");
+					stmt.addBatch("update fopzlvote_playerQueue set votesQueued = votesQueued + 1 where uuid = '" + uuid + "';");
 				}
 				stmt.execute("replace into fopzlvote_siteCooldowns values ('" + uuid + "', '" + site + "', '" + whenLastVoted + "');");
 				stmt.executeBatch();

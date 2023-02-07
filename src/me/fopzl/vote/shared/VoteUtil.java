@@ -41,13 +41,15 @@ public class VoteUtil {
 	}
 	
 	// Checks if a vote is viable via the provided username, null if the vote is invalid
-	public static UUID checkVote(String user, String site) {
+	public static UUID checkVote(String user, String site) throws Exception {
 		if (voteSites.containsKey(site) || site.equalsIgnoreCase("freevote")) {
-			if (!user.matches("[a-zA-Z0-9]*")) return null;
+			if (!user.matches("[a-zA-Z0-9]+")) {
+				throw new Exception("Username " + user + " doesn't match regex");
+			}
 			
 			Set<? extends LastLoginPlayer> potentialVoters = LastLogin.getApi().getPlayerByName(user);
 			if (potentialVoters.size() == 0) {
-				return null;
+				throw new Exception("No usernames found in LastLoginAPI");
 			}
 			
 			// If there's only one username match, make that the uuid
@@ -60,6 +62,6 @@ public class VoteUtil {
 				return potentialVoters.stream().max(comp).get().getPlayerUUID();
 			}
 		}
-		return null;
+		throw new Exception("Invalid website " + site);
 	}
 }

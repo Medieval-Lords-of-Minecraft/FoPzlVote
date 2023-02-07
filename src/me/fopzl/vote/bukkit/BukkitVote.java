@@ -67,9 +67,13 @@ public class BukkitVote extends JavaPlugin implements Listener {
 		Vote vote = e.getVote();
 		String site = vote.getServiceName();
 		String user = vote.getUsername();
-		UUID uuid = VoteUtil.checkVote(user, site);
-		if (uuid == null) {
-			Bukkit.getLogger().warning("[FoPzlVote] Vote failed, invalid username " + user);
+		final UUID uuid;
+		try {
+			uuid = VoteUtil.checkVote(user, site);
+		}
+		catch (Exception ex) {
+			ex.printStackTrace();
+			Bukkit.getLogger().warning("[FoPzlVote] Vote failed for username " + user + " on site " + site);
 			return;
 		}
 
@@ -137,7 +141,7 @@ public class BukkitVote extends JavaPlugin implements Listener {
 
 			vsi.cooldown = new VoteCooldown(cdType, cdTime, timezone);
 
-			VoteUtil.addVoteSite(vsi.nickname, vsi);
+			VoteUtil.addVoteSite(vsi.serviceName, vsi);
 		}
 
 		VoteStats.setStreakLimit(cfg.getInt("streak-vote-limit"));

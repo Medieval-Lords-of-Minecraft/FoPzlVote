@@ -43,7 +43,7 @@ public class VoteUtil {
 	// Checks if a vote is viable via the provided username, null if the vote is invalid
 	public static UUID checkVote(String user, String site) throws Exception {
 		if (voteSites.containsKey(site) || site.equalsIgnoreCase("freevote")) {
-			if (!user.matches("[a-zA-Z0-9]+")) {
+			if (!user.matches("[\\w]+")) {
 				throw new Exception("Username " + user + " doesn't match regex");
 			}
 			

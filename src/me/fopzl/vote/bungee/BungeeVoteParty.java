@@ -56,12 +56,12 @@ public class BungeeVoteParty {
 	
 	private static void tick() {
 		if(points % notifyInterval == 0 && points != pointsToStart) {
-			Util.broadcast(notifyMsg);
+			Util.broadcast(notifyMsg.replaceAll("%votesremaining%", "" + (pointsToStart - points)));
 		}
 		
 		for(int i : specificNotifies.keySet()) {
 			if(points == i) {
-				Util.broadcast(specificNotifies.get(i));
+				Util.broadcast(specificNotifies.get(i).replaceAll("%votesremaining%", "" + (pointsToStart - points)));
 			}
 		}
 		

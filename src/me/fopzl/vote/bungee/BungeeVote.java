@@ -105,8 +105,13 @@ public class BungeeVote extends Plugin implements Listener
 				stmt.addBatch("update fopzlvote_playerStats set totalVotes = totalVotes + 1 where uuid = '" + uuid + "';");
 				stmt.addBatch("update fopzlvote_playerStats set whenLastVoted = '" + LocalDateTime.now().toString() + "' where uuid = '" + uuid + "';");
 				stmt.addBatch("update fopzlvote_playerHist set numVotes = numVotes + 1 where uuid = '" + uuid + "' and year = " + year + " and month = " + month + ";");
-				stmt.addBatch("update fopzlvote_playerStats set votesQueued = votesQueued + 1 where uuid = '" + uuid +
-						"' AND server != '" + p.getServer().getInfo().getName() + "';");
+				if (p != null) {
+					stmt.addBatch("update fopzlvote_playerStats set votesQueued = votesQueued + 1 where uuid = '" + uuid +
+							"' AND server != '" + p.getServer().getInfo().getName() + "';");
+				}
+				else {
+					stmt.addBatch("update fopzlvote_playerStats set votesQueued = votesQueued + 1 where uuid = '" + uuid + "';");
+				}
 				stmt.execute("replace into fopzlvote_siteCooldowns values ('" + uuid + "', '" + site + "', '" + whenLastVoted + "');");
 				stmt.executeBatch();
 			}

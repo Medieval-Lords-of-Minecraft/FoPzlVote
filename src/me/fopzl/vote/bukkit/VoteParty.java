@@ -7,7 +7,6 @@ import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class VoteParty {
@@ -15,7 +14,7 @@ public class VoteParty {
 	public static int countdownLength; // in seconds
 	public static Map<Integer, String> countdownCommands; // key in seconds
 	
-	public void reload(YamlConfiguration yml) {
+	public static void reload(ConfigurationSection yml) {
 		countdownLength = yml.getInt("delay");
 		countdownCommands = new HashMap<Integer, String>();
 		ConfigurationSection countdownSec = yml.getConfigurationSection("countdown"); 
@@ -38,7 +37,7 @@ public class VoteParty {
 					Bukkit.dispatchCommand(Bukkit.getConsoleSender(), entry.getValue());
 			}}.runTaskLater(BukkitVote.getInstance(), 20 * entry.getKey());
 		}
-		
+
 		new BukkitRunnable() {
 			@Override
 			public void run() {

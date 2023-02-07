@@ -49,6 +49,7 @@ public class BungeeVote extends Plugin implements Listener
     	SubcommandManager mngr = new SubcommandManager("vp", null, ChatColor.RED, this);
     	mngr.register(new CmdVotePartyStatus("status", "Checks how many votes left till a vote party!", null, SubcommandRunner.BOTH));
     	mngr.register(new CmdVotePartySet("set", "Sets the vote party vote count", "fopzlvote.admin", SubcommandRunner.BOTH));
+    	mngr.register(new CmdVotePartyStart("start", "Starts a vote party", "fopzlvote.admin", SubcommandRunner.BOTH));
     	mngr.registerCommandList("");
     }
 	

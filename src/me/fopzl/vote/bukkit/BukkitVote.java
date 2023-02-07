@@ -26,11 +26,6 @@ import me.neoblade298.neocore.shared.commands.SubcommandRunner;
 import net.md_5.bungee.api.ChatColor;
 
 public class BukkitVote extends JavaPlugin implements Listener {
-
-	private static VoteRewards rewards;
-	private static VoteParty voteParty;
-
-
 	private static BukkitVote instance;
 	public static boolean debug = false;
 
@@ -38,9 +33,6 @@ public class BukkitVote extends JavaPlugin implements Listener {
 		super.onEnable();
 
 		instance = this;
-
-		rewards = new VoteRewards();
-		voteParty = new VoteParty();
 
 		getServer().getPluginManager().registerEvents(this, this);
 
@@ -118,14 +110,15 @@ public class BukkitVote extends JavaPlugin implements Listener {
 		if (!mainCfg.exists()) {
 			instance.saveResource("config.yml", false);
 		}
-		instance.reload(YamlConfiguration.loadConfiguration(mainCfg));
-		voteParty.reload(YamlConfiguration.loadConfiguration(mainCfg));
+		YamlConfiguration yml = YamlConfiguration.loadConfiguration(mainCfg);
+		instance.reload(yml);
+		VoteParty.reload(yml.getConfigurationSection("voteparty"));
 
 		File rewardsCfg = new File(instance.getDataFolder(), "rewards.yml");
 		if (!rewardsCfg.exists()) {
 			instance.saveResource("rewards.yml", false);
 		}
-		rewards.reload(YamlConfiguration.loadConfiguration(rewardsCfg));
+		VoteRewards.reload(YamlConfiguration.loadConfiguration(rewardsCfg));
 	}
 
 	public void reload(YamlConfiguration cfg) {
@@ -149,9 +142,5 @@ public class BukkitVote extends JavaPlugin implements Listener {
 
 		VoteStats.setStreakLimit(cfg.getInt("streak-vote-limit"));
 		VoteStats.setStreakResetTime(cfg.getInt("streak-reset-leniency"));
-	}
-
-	public static VoteParty getVoteParty() {
-		return voteParty;
 	}
 }

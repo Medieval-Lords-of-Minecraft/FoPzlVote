@@ -70,7 +70,7 @@ public class BungeeVoteParty {
 		}
 	}
 	
-	private static void triggerParties() {
+	public static void triggerParties() {
 		points = 0;
 		for (Entry<String, Integer> e : servers.entrySet()) {
 			if (e.getValue() == 0) {
@@ -79,7 +79,7 @@ public class BungeeVoteParty {
 			else {
 				BungeeVote.inst().getProxy().getScheduler().schedule(BungeeVote.inst(), () -> {
 					BungeeCore.sendPluginMessage(new String[] {e.getKey()}, new String[] {"fopzlvote-startparty"}, true);
-				}, e.getValue(), TimeUnit.MINUTES);
+				}, e.getValue(), TimeUnit.SECONDS);
 			}
 		}
 	}

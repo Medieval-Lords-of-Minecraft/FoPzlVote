@@ -135,6 +135,11 @@ public class BukkitVoteIO implements IOComponent {
 		}
 	}
 	
+	// Used for placeholder so guaranteed there's no sql
+	public static VoteStats getStats(Player p) {
+		return stats.get(p.getUniqueId());
+	}
+	
 	public static VoteStats loadOrGetStats(UUID uuid) {
 		if (stats.containsKey(uuid)) return stats.get(uuid);
 		

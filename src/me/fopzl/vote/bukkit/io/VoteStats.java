@@ -70,8 +70,13 @@ public class VoteStats {
 		}.runTaskAsynchronously(BukkitVote.getInstance());
 		
 		VoteRewards.rewardVotes(p, voteStreak, votesQueued);
+		if (BukkitVote.debug) {
+			Bukkit.getLogger().info("[FoPzlVote] Handled queued votes for player " + uuid + ", total votes " + totalVotes + ", vote streak " + voteStreak + ", votes queued " + votesQueued);
+		}
 		voteStreak += votesQueued;
 		votesQueued = 0;
+
+		dirty = true;
 	}
 	
 	// This method MUST be called synchronously

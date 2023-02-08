@@ -3,7 +3,6 @@ package me.fopzl.vote.bungee.commands;
 import me.fopzl.vote.bungee.BungeeVoteParty;
 import me.neoblade298.neocore.bungee.commands.Subcommand;
 import me.neoblade298.neocore.bungee.util.Util;
-import me.neoblade298.neocore.shared.commands.Arg;
 import me.neoblade298.neocore.shared.commands.SubcommandRunner;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;

@@ -111,7 +111,8 @@ public class BungeeVote extends Plugin implements Listener
 				String whenLastVoted = LocalDateTime.now().toString();
 				stmt.addBatch("update fopzlvote_playerStats set totalVotes = totalVotes + 1 where uuid = '" + uuid + "';");
 				stmt.addBatch("update fopzlvote_playerStats set whenLastVoted = '" + LocalDateTime.now().toString() + "' where uuid = '" + uuid + "';");
-				stmt.addBatch("update fopzlvote_playerHist set numVotes = numVotes + 1 where uuid = '" + uuid + "' and year = " + year + " and month = " + month + ";");
+				stmt.addBatch("update fopzlvote_playerHist set numVotes = numVotes + 1 where uuid = '" + uuid + "' and year = " + year + " and month = " + month +
+						"and voteSite = '" + site + "';");
 				if (p != null) {
 					stmt.addBatch("update fopzlvote_playerQueue set votesQueued = votesQueued + 1 where uuid = '" + uuid +
 							"' AND server != '" + p.getServer().getInfo().getName() + "';");

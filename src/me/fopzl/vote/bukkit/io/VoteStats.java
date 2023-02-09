@@ -75,6 +75,9 @@ public class VoteStats {
 		}
 		voteStreak += votesQueued;
 		votesQueued = 0;
+		while (voteStreak > VoteStats.getStreakLimit()) {
+			voteStreak-= VoteStats.getStreakLimit();
+		}
 
 		dirty = true;
 	}
@@ -103,6 +106,9 @@ public class VoteStats {
 		// If our votes are caught up (player is online), reward votes as normal
 		if (votesQueued == 0 && oldStreaks.isEmpty() && p != null) {
 			VoteRewards.rewardVotes(p, voteStreak++, 1);
+			while (voteStreak > VoteStats.getStreakLimit()) {
+				voteStreak-= VoteStats.getStreakLimit();
+			}
 		}
 		// Otherwise just increase the streak (Waiting for login to kick in and reward all votes at once)
 		else {

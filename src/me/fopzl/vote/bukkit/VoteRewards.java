@@ -110,7 +110,7 @@ public class VoteRewards {
 	}
 	
 	public static void rewardVotes(Player p, int streak, int queued) {
-		int toGive = streak;
+		int toGive = streak + 1;
 		for (int i = streak + 1; i <= streak + queued; i++) {
 			dailyReward.giveReward(p);
 			

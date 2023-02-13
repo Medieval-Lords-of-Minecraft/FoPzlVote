@@ -78,7 +78,7 @@
     </dependency>
     <dependency>
 		    <groupId>me.neoblade298</groupId>
-		    <artifactId>SkillAPI</artifactId>
+		    <artifactId>NeoCore</artifactId>
 		    <version>1.0</version>
 		    <scope>system</scope>
 		    <systemPath>${project.basedir}/resources/NeoCore-0.0.1-SNAPSHOT.jar</systemPath>

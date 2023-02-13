@@ -15,6 +15,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import me.fopzl.vote.bukkit.io.VoteStats;
+import me.neoblade298.neocore.shared.util.SharedUtil;
 
 public class VoteRewards {
 	private static Map<String, Reward> allRewards;
@@ -132,6 +133,14 @@ public class VoteRewards {
 	}
 
 	public static boolean giveReward(Player p, String rewardName) {
+		if (SharedUtil.isNumeric(rewardName)) {
+			int rewardInt = Integer.parseInt(rewardName);
+			if (streakRewards.containsKey(Integer.parseInt(rewardName))) {
+				for (Reward r : streakRewards.get(rewardInt)) {
+					r.giveReward(p);
+				}
+			}
+		}
 		if(allRewards.containsKey(rewardName)) {
 			allRewards.get(rewardName).giveReward(p);
 			return true;

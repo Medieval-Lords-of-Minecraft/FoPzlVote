@@ -57,7 +57,7 @@ public class BukkitVote extends JavaPlugin implements Listener {
 		mngr.registerCommandList("");
 		mngr.register(new CmdAdminVoteDebug("debug", "Toggle debug mode", null, SubcommandRunner.BOTH));
 		mngr.register(new CmdAdminVoteReload("reload", "Reloads config", null, SubcommandRunner.BOTH));
-		mngr.register(new CmdAdminVoteReward("reward", "Gives a reward to a player", null, SubcommandRunner.BOTH));
+		mngr.register(new CmdAdminVoteReward("reward", "Gives a reward (including streak rewards) to a player", null, SubcommandRunner.BOTH));
 		mngr.register(new CmdAdminVoteSetstreak("setstreak", "Sets a player's streak", null, SubcommandRunner.BOTH));
 		mngr.register(new CmdAdminVoteVote("vote", "Sends a test vote", null, SubcommandRunner.BOTH));
 	}

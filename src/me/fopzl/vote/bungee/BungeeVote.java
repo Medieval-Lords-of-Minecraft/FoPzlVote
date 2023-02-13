@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import com.alessiodp.lastloginapi.api.LastLogin;
+import com.alessiodp.lastloginapi.api.interfaces.LastLoginAPI;
 import com.vexsoftware.votifier.bungee.events.VotifierEvent;
 import com.vexsoftware.votifier.model.Vote;
 
@@ -98,8 +100,9 @@ public class BungeeVote extends Plugin implements Listener
 			return;
 		}
 		ProxiedPlayer p = inst.getProxy().getPlayer(uuid);
+		String name = LastLogin.getApi().getPlayer(uuid).getName();
 		
-		Util.mutableBroadcast("votebc", "&e" + user + " &7just voted on &c" + site + "&7!");
+		Util.mutableBroadcast("votebc", "&e" + name + " &7just voted on &c" + site + "&7!");
 		BungeeVoteParty.addPoints(1);
 		
 		// Update global stats, but after 5 seconds to give local stats chance to load them first

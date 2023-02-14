@@ -1,16 +1,17 @@
 name: FoPzlVote
-main: me.fopzl.vote.Vote
-author: [FoPzl]
-depend: [NeoCore, Votifier]
+main: me.fopzl.vote.bukkit.BukkitVote
+author: [FoPzl, Neoblade298]
+depend: [NeoCore]
+softdepend: [Votifier]
 version: 1.0
 api-version: 1.19
 commands:
-   mlvote:
-      usage: "§cUsage: §7/<command> stats/cooldown/leaderboard"
+   vote:
+      usage: "§cUsage: §7/<command>"
       permission: mlvote.general
-   voteparty:
-      aliases: [vp]
-      usage: "§cUsage: §7/<command> status"
+   adminvote:
+      aliases: [av]
+      usage: "§cUsage: §7/<command>"
       permission: mlvote.general
 permissions:
    mlvote.general:

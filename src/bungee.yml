@@ -1,0 +1,9 @@
+name: FoPzlVote
+main: me.fopzl.vote.bungee.BungeeVote
+author: Neoblade298
+depends: [NuVotifier, LastLoginAPI, NeoCore]
+version: 1.0
+commands:
+   vp:
+      usage: "§cUsage: §7/<command>"
+      aliases: [voteparty]

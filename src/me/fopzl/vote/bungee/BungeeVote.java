@@ -10,7 +10,6 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import com.alessiodp.lastloginapi.api.LastLogin;
-import com.alessiodp.lastloginapi.api.interfaces.LastLoginAPI;
 import com.vexsoftware.votifier.bungee.events.VotifierEvent;
 import com.vexsoftware.votifier.model.Vote;
 
@@ -45,6 +44,11 @@ public class BungeeVote extends Plugin implements Listener
         initCommands();
         
         reload();
+    }
+    
+    @Override
+    public void onDisable() {
+    	BungeeVoteIO.saveVoteParty();
     }
     
     private void initCommands() {

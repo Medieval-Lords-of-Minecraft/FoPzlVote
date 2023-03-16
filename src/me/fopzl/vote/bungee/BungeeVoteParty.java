@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
-import me.neoblade298.neocore.bukkit.NeoCore;
 import me.neoblade298.neocore.bungee.BungeeCore;
 import me.neoblade298.neocore.bungee.util.Util;
 import net.md_5.bungee.api.CommandSender;
@@ -37,10 +36,12 @@ public class BungeeVoteParty {
 			servers.put(key, serverSec.getInt(key));
 		}
 		
-		try (Connection con = NeoCore.getConnection("FoPzlVote");
+		try (Connection con = BungeeCore.getConnection("FoPzlVote");
 				Statement stmt = con.createStatement();
 				ResultSet rs = stmt.executeQuery("SELECT * FROM MLMC.fopzlvote_voteParty")) {
-			points = rs.getInt("points");
+			if (rs.next()) {
+				points = rs.getInt("points");
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
